@@ -7,7 +7,7 @@
  * @param tF Maturity.
  */
 Model::Model(const double x0, const double tF) :
-    m_x0(x0), m_tF(tF), m_Gaussian(0.0,1.0)
+    m_x0(x0), m_tF(tF)
 {
 }
 
@@ -22,7 +22,7 @@ BlackAndScholes::BlackAndScholes(const double b,
                                  const double s,
                                  const double x0,
                                  const double tF):
-    Model(x0, tF), m_b(b), m_s(s)
+    Model(x0, tF), m_b(b), m_s(s), m_Gaussian(0.0,1.0)
 {
 }
 

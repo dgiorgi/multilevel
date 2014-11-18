@@ -40,9 +40,7 @@ protected:
     /** Starting point \f$x_0\f$. */
     double m_x0;
     /** Maturity \f$T\f$. */
-    double m_tF; // This is set to 1.
-    /** Generic normal distribution. */
-    std::normal_distribution<double> m_Gaussian;
+    double m_tF;
 };
 
 /**
@@ -75,6 +73,44 @@ protected :
     double m_b;
     /** Volatility constant */
     double m_s;
+    /** Generic normal distribution. */
+    std::normal_distribution<double> m_Gaussian;
+};
+
+/**
+ * @brief The SABR class
+ *
+ * SABR model.
+ *
+ * \f[dF_t = \sigma_t F_t^{\beta}dW_t\f]
+ * \f[d\sigma_t = \alpha \sigma_t dZ_t\f]
+ * \f[F_0=f_0\f]
+ * \f[Z_0=z_0\f]
+ */
+class SABR : public Model
+{
+public:
+    /** Constructor */
+    SABR(const double alpha,
+                    const double beta,
+                    const double x0,
+                    const double tF);
+
+    /** Drift function of the Black and Scholes model: \f$b(t,x)=b*x\f$. */
+    double drift(const double t, const double x){ return m_b*x; }
+    /** Volatility function of the Black and Scholes model: \f$\sigma(t,x)=\sigma*x\f$. */
+    double sigma(const double t, const double x){ return m_s*x; }
+
+    double singleSimulation(mt19937_64& gen, const unsigned int n);
+    pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
+
+protected :
+    /** Drift constant */
+    double m_b;
+    /** Volatility constant */
+    double m_s;
+    /** Generic normal distribution. */
+    std::normal_distribution<double> m_Gaussian;
 };
 
 // Smart pointers to Model and BlackAndScholes objects

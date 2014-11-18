@@ -15,4 +15,5 @@ HEADERS += \
     multilevelparameters.hpp \
     montecarlo.hpp \
     functions.hpp \
-    estimator.hpp
+    estimator.hpp \
+    scheme.hpp
