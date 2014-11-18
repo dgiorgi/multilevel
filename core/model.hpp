@@ -22,11 +22,11 @@ public:
     /** Constructor. */
     Model(const double x0, const double tF);
 
-//    /** Virtual function to simulate a process. */
-//    virtual double singleSimulation(mt19937_64& gen, const unsigned int n) = 0;
+    /** Virtual function to simulate a process. */
+    virtual double singleSimulation(mt19937_64& gen, const unsigned int n) = 0;
 
-//    /** Virtual function to simulate two processes. */
-//    virtual pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2) = 0;
+    /** Virtual function to simulate two processes. */
+    virtual pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2) = 0;
 
     /** @name Getters
      * @{ */
