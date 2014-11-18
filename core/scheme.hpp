@@ -19,5 +19,18 @@ protected:
     Model m_model;
 };
 
+class Euler : public Scheme
+{
+public:
+    /** Constructor. */
+    Euler(const Model& model);
+
+    double singleSimulation(mt19937_64& gen, const unsigned int n);
+    pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
+
+protected:
+
+};
+
 
 #endif // SCHEME_HPP
