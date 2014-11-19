@@ -8,7 +8,7 @@
  */
 MonteCarlo::MonteCarlo(mt19937_64& gen,
                        std::function<double(double)> f,
-                       const modelfPtr model,
+                       const modelPtr model,
                        const unsigned int modelSize):
     m_gen(gen), m_f(f), m_model(model), m_modelSize(modelSize), m_totalN(0), m_sum(0.), m_sumSquares(0.)
 {
@@ -23,7 +23,8 @@ double MonteCarlo::operator()(const unsigned int N){
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
     for (unsigned int i=0; i< N; ++i) {
-        double x = m_model->singleSimulation(m_gen, m_modelSize);
+        Euler euler(m_model);
+        double x = euler.singleSimulation(m_gen, m_modelSize);
         m_sum += m_f(x);
         m_sumSquares += m_f(x)*m_f(x);
     }
@@ -43,7 +44,7 @@ double MonteCarlo::operator()(const unsigned int N){
  */
 DoubleMonteCarlo::DoubleMonteCarlo(mt19937_64& gen,
                                    std::function<double(double)> f,
-                                   const modelfPtr model,
+                                   const modelPtr model,
                                    const unsigned int modelSize1,
                                    const unsigned int modelSize2):
     m_gen(gen), m_f(f), m_model(model), m_modelSize1(modelSize1), m_modelSize2(modelSize2), m_totalN(0), m_sum(0.), m_sumSquares(0.)
@@ -60,7 +61,8 @@ double DoubleMonteCarlo::operator()(const unsigned int N){
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
     for (unsigned int i=0; i< N; ++i) {
-        pair<double, double> x = m_model->doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
+        Euler euler(m_model);
+        pair<double, double> x = euler.doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
         double diff = m_f(x.second) - m_f(x.first) ;
         m_sum += diff;
         m_sumSquares += diff*diff;

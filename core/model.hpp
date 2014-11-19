@@ -26,6 +26,8 @@ public:
     virtual double drift(const double t, const double x)  = 0;
     /** Volatility function of the model: \f$\sigma(t,x)\f$. */
     virtual double sigma(const double t, const double x) = 0;
+    /** Random variable realization */
+    virtual double random(mt19937_64& gen) = 0;
 
 //    /** Virtual function to simulate a process. */
 //    virtual double singleSimulation(mt19937_64& gen, const unsigned int n) = 0;
@@ -69,6 +71,8 @@ public:
     double drift(const double t, const double x){ return m_b*x; }
     /** Volatility function of the Black and Scholes model: \f$\sigma(t,x)=\sigma*x\f$. */
     double sigma(const double t, const double x){ return m_s*x; }
+    /** Random variable realization */
+    double random(mt19937_64& gen){ return m_Gaussian(gen); }
 
 //    double singleSimulation(mt19937_64& gen, const unsigned int n);
 //    pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
@@ -119,7 +123,7 @@ protected :
 };
 
 // Smart pointers to Model and BlackAndScholes objects
-typedef shared_ptr<Model> modelfPtr;
+typedef shared_ptr<Model> modelPtr;
 typedef shared_ptr<BlackAndScholes> blackAndScholesfPtr;
 
 #endif // MODEL_HPP

@@ -4,6 +4,7 @@
 #include <functional>
 #include <model.hpp>
 #include <math.h>
+#include <scheme.hpp>
 
 /**
  * @brief The MonteCarlo class
@@ -16,7 +17,7 @@ public:
     /** Constructor. */
     MonteCarlo(mt19937_64& gen,
                std::function<double(double)> f,
-               const modelfPtr model,
+               const modelPtr model,
                const unsigned int modelSize);
 
     /** Method to compute the empirical mean \f$\frac 1 N \sum_{i=1}^N f(X_T^{(i)})\f$. */
@@ -42,7 +43,7 @@ public:
     /** Function \f$f\f$ getter. */
     std::function<double(double)> getF() const {return m_f;}
     /** Model getter. */
-    modelfPtr getModel() const {return m_model;}
+    modelPtr getModel() const {return m_model;}
     /** Model discretization size getter. */
     unsigned int getModelSize() const {return m_modelSize;}
     /** Total number of simulations getter. */
@@ -55,7 +56,7 @@ protected:
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
     std::function<double(double)> m_f;
     /** Model for the random variable. For the moment a SDE.*/
-    modelfPtr m_model;
+    modelPtr m_model;
     /** Discretization size of the random variable. */
     unsigned int m_modelSize;
     /** Total number of simulations. It's incremented every time we call of the simulation method. */
@@ -78,7 +79,7 @@ public:
     /** Constructor. */
     DoubleMonteCarlo(mt19937_64& gen,
                      std::function<double(double)> f,
-                     const modelfPtr model,
+                     const modelPtr model,
                      const unsigned int modelDisc1,
                      const unsigned int modelDisc2);
 
@@ -106,7 +107,7 @@ public:
     /** Function \f$f\f$ getter. */
     std::function<double(double)> getF() const {return m_f;}
     /** Model getter. */
-    modelfPtr getModel() const {return m_model;}
+    modelPtr getModel() const {return m_model;}
     /** First discretization size getter. */
     unsigned int getModelSize1() const {return m_modelSize1;}
     /** Second discretization size getter. */
@@ -121,7 +122,7 @@ protected:
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
     std::function<double(double)> m_f;
     /** Model for the random variable. For the moment a SDE.*/
-    modelfPtr m_model;
+    modelPtr m_model;
     /** First discretization size of the random variable. */
     unsigned int m_modelSize1;
     /** Second discretization size of the random variable. */

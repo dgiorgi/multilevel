@@ -28,7 +28,7 @@ public:
     /** Constructor. */
     Estimator(mt19937_64& gen,
               std::function<double(double)> f,
-              const modelfPtr model,
+              const modelPtr model,
               const MultilevelParameters multilevelParams);
     /** Method to compute the estimator */
     double compute();
@@ -39,7 +39,7 @@ protected:
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
     std::function<double(double)> m_f;
     /** Model for the random variable. For the moment a SDE.*/
-    modelfPtr m_model;
+    modelPtr m_model;
     /** Multilevel parameters which define the estimator. */
     MultilevelParameters m_multilevelParams;
 };

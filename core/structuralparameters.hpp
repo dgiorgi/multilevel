@@ -39,15 +39,15 @@ public:
     /** @name Compute parameters functions*/
     void computeParameters(mt19937_64& gen,
                            std::function<double(double)> f,
-                           const modelfPtr model,
+                           const modelPtr model,
                            const unsigned int N);
     void computeV1(mt19937_64& gen,
                    std::function<double(double)> f,
-                   const modelfPtr model,
+                   const modelPtr model,
                    const unsigned int N);
     void computeVarY0(mt19937_64& gen,
                       std::function<double(double)> f,
-                      const modelfPtr model,
+                      const modelPtr model,
                       const unsigned int N);
     void computeTheta();
     void displayParameters();

@@ -10,7 +10,7 @@ using namespace std;
  */
 Estimator::Estimator(mt19937_64& gen,
                      std::function<double(double)> f,
-                     const modelfPtr model,
+                     const modelPtr model,
                      const MultilevelParameters multilevelParams):
     m_gen(gen), m_f(f), m_model(model), m_multilevelParams(multilevelParams)
 {

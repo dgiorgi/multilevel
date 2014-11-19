@@ -28,7 +28,7 @@ StructuralParameters::StructuralParameters(const double alpha,
  */
 void StructuralParameters::computeParameters(mt19937_64& gen,
                                              std::function<double(double)> f,
-                                             const modelfPtr model,
+                                             const modelPtr model,
                                              const unsigned int N)
 {
     // First we compute the var(Y0) and V1
@@ -56,7 +56,7 @@ void StructuralParameters::computeParameters(mt19937_64& gen,
  */
 void StructuralParameters::computeV1(mt19937_64& gen,
                                      std::function<double(double)> f,
-                                     const modelfPtr model,
+                                     const modelPtr model,
                                      const unsigned int N)
 {
     unsigned int M = 10;
@@ -94,7 +94,7 @@ void StructuralParameters::computeV1(mt19937_64& gen,
  */
 void StructuralParameters::computeVarY0(mt19937_64& gen,
                                         std::function<double(double)> f,
-                                        const modelfPtr model,
+                                        const modelPtr model,
                                         const unsigned int N)
 {
     double T = model->getMaturity();

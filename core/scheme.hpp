@@ -7,7 +7,7 @@ class Scheme
 {
 public:
     /** Constructor. */
-    Scheme(const Model& model);
+    Scheme(const modelPtr model);
 
     /** Virtual function to simulate a process. */
     virtual double singleSimulation(mt19937_64& gen, const unsigned int n) = 0;
@@ -16,14 +16,14 @@ public:
     virtual pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2) = 0;
 
 protected:
-    Model m_model;
+    modelPtr m_model;
 };
 
 class Euler : public Scheme
 {
 public:
     /** Constructor. */
-    Euler(const Model& model);
+    Euler(const modelPtr model);
 
     double singleSimulation(mt19937_64& gen, const unsigned int n);
     pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
@@ -31,6 +31,8 @@ public:
 protected:
 
 };
+
+
 
 
 #endif // SCHEME_HPP
