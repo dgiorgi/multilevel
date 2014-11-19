@@ -1,7 +1,16 @@
 #include "scheme.hpp"
 
+/**
+ * @param model Pointer to the model.
+ */
 Scheme::Scheme(const modelPtr model): m_model(model){}
 
+
+
+
+/**
+ * @param model Pointer to the model.
+ */
 Euler::Euler(const modelPtr model): Scheme(model){}
 
 /**

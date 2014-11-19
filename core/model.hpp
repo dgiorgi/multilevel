@@ -22,18 +22,12 @@ public:
     /** Constructor. */
     Model(const double x0, const double tF);
 
-    /** Drift function of the model: \f$b(t,x)\f$. */
+    /** Pure virtual drift function of the model: \f$b(t,x)\f$. */
     virtual double drift(const double t, const double x)  = 0;
-    /** Volatility function of the model: \f$\sigma(t,x)\f$. */
+    /** Pure virtual volatility function of the model: \f$\sigma(t,x)\f$. */
     virtual double sigma(const double t, const double x) = 0;
-    /** Random variable realization */
+    /** Pure virtual random variable realization */
     virtual double random(mt19937_64& gen) = 0;
-
-//    /** Virtual function to simulate a process. */
-//    virtual double singleSimulation(mt19937_64& gen, const unsigned int n) = 0;
-
-//    /** Virtual function to simulate two processes. */
-//    virtual pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2) = 0;
 
     /** @name Getters
      * @{ */
@@ -72,10 +66,13 @@ public:
     /** Volatility function of the Black and Scholes model: \f$\sigma(t,x)=\sigma*x\f$. */
     double sigma(const double t, const double x){ return m_s*x; }
     /** Random variable realization */
-    double random(mt19937_64& gen){ return m_Gaussian(gen); }
+    double random(mt19937_64& gen){ return m_gaussian(gen); }
 
-//    double singleSimulation(mt19937_64& gen, const unsigned int n);
-//    pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
+    /** @name Getters
+     * @{ */
+    /** Starting point getter. */
+    std::normal_distribution<double> getRandom() const {return m_gaussian;}
+    /** @} */
 
 protected :
     /** Drift constant */
@@ -83,7 +80,7 @@ protected :
     /** Volatility constant */
     double m_s;
     /** Generic normal distribution. */
-    std::normal_distribution<double> m_Gaussian;
+    std::normal_distribution<double> m_gaussian;
 };
 
 /**
@@ -119,7 +116,7 @@ protected :
     /** Volatility constant */
     double m_s;
     /** Generic normal distribution. */
-    std::normal_distribution<double> m_Gaussian;
+    std::normal_distribution<double> m_gaussian;
 };
 
 // Smart pointers to Model and BlackAndScholes objects

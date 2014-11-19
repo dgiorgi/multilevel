@@ -10,6 +10,7 @@
 #include <structuralparameters.hpp>
 #include <multilevelparameters.hpp>
 #include <estimator.hpp>
+#include <scheme.hpp>
 
 using namespace std;
 
@@ -21,6 +22,7 @@ int main() {
     // We define the Black and Scholes model
     double x0=100, r=0.05, sigma=0.2, K=100, T=5;
     blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r,sigma, x0, T));
+    eulerPtr eulerScheme(new Euler(BS));
     
     auto call = [=](double x) { return x > K ? exp(-r*T)*(x - K) : 0; };
     
@@ -37,7 +39,7 @@ int main() {
 
     // We define the structural parameters
     StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
-    structParam.computeParameters(gen, std::function<double(double const &)>(call), BS, N);
+    structParam.computeParameters(gen, std::function<double(double const &)>(call), eulerScheme, N);
 
     // We compute the multilevel parameters with a tolerance epsilon
     double epsilon = pow(2.0, -1);
@@ -45,36 +47,9 @@ int main() {
     MultilevelParameters multilevelParamMC = MultilevelParameters(epsilon, structParam, MC);
     MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
 
-//    // We search for the M which give the best computational cost
-//    double bestCostMC = MY_INF;
-//    unsigned bestMMC = 2;
-//    double bestCostRR = MY_INF;
-//    unsigned bestMRR = 2;
-
-//    for (unsigned M=2; M<10; ++M){
-//        MultilevelParameters multilevelParamMC = MultilevelParameters(epsilon, structParam, MC);
-//        multilevelParamMC.computeOptimalParameters();
-//        double tempCostMC = multilevelParamMC.computeCost();
-//        bestMMC = tempCostMC < bestCostMC ? M : bestMMC;
-//        bestCostMC = min(tempCostMC, bestCostMC);
-
-//        MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
-//        multilevelParamRR.computeOptimalParameters();
-//        double tempCostRR = multilevelParamRR.computeCost();
-//        bestMRR = tempCostRR < bestCostRR ? M : bestMRR;
-//        bestCostRR = min(tempCostRR, bestCostRR);
-//    }
-
-//    // Compute the multilevel parameters for the best M
-//    MultilevelParameters multilevelParamMC = MultilevelParameters(epsilon, structParam, MC, bestMMC);
-//    multilevelParamMC.computeOptimalParameters();
-
-//    MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR, bestMRR);
-//    multilevelParamRR.computeOptimalParameters();
-
     // We compute the estimators
-    Estimator estimatorMC(gen, std::function<double(double const &)>(call), BS, multilevelParamMC);
-    Estimator estimatorRR(gen, std::function<double(double const &)>(call), BS, multilevelParamRR);
+    Estimator estimatorMC(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamMC);
+    Estimator estimatorRR(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamRR);
 
     double estimatorValueMC = estimatorMC.compute();
     double estimatorValueRR = estimatorRR.compute();

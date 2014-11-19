@@ -5,14 +5,14 @@ using namespace std;
 /**
  * @param gen Generator for the random variable
  * @param f Function of the random variable that we simulate \f$f(X_T)\f$
- * @param model Model for \f$X_t\f$
+ * @param scheme Scheme for the simulation of \f$X_t\f$
  * @param multilevelParams Multilevel parameters associated to this estimator.
  */
 Estimator::Estimator(mt19937_64& gen,
                      std::function<double(double)> f,
-                     const modelPtr model,
+                     const schemePtr scheme,
                      const MultilevelParameters multilevelParams):
-    m_gen(gen), m_f(f), m_model(model), m_multilevelParams(multilevelParams)
+    m_gen(gen), m_f(f), m_scheme(scheme), m_multilevelParams(multilevelParams)
 {
 }
 
@@ -34,7 +34,7 @@ double Estimator::compute()
     // We first compute the first term by single Monte Carlo simulation
     // This term is the same for both methods
     unsigned int N_0 = ceil(N*q[0]);
-    MonteCarlo monteCarlo = MonteCarlo(m_gen, m_f, m_model, hInverse);
+    MonteCarlo monteCarlo = MonteCarlo(m_gen, m_f, m_scheme, hInverse);
     sum += monteCarlo(N_0);
 
     for (unsigned int j=1; j<R; ++j){
@@ -56,7 +56,7 @@ double Estimator::compute()
         }
         }
         // We make the Monte Carlo
-        DoubleMonteCarlo monteCarlo = DoubleMonteCarlo(m_gen, newF, m_model, hInverse*n[j-1], hInverse*n[j]);
+        DoubleMonteCarlo monteCarlo = DoubleMonteCarlo(m_gen, newF, m_scheme, hInverse*n[j-1], hInverse*n[j]);
         sum += monteCarlo(N_j);
     }
 

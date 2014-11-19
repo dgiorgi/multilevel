@@ -15,9 +15,14 @@ public:
     /** Virtual function to simulate two processes. */
     virtual pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2) = 0;
 
+    modelPtr getModel() const {return m_model;}
+
 protected:
     modelPtr m_model;
 };
+
+// Smart pointers to Scheme objects
+typedef shared_ptr<Scheme> schemePtr;
 
 class Euler : public Scheme
 {
@@ -27,12 +32,10 @@ public:
 
     double singleSimulation(mt19937_64& gen, const unsigned int n);
     pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
-
-protected:
-
 };
 
-
+// Smart pointers to Euler objects
+typedef shared_ptr<Euler> eulerPtr;
 
 
 #endif // SCHEME_HPP
