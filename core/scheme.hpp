@@ -1,7 +1,7 @@
 #ifndef SCHEME_HPP
 #define SCHEME_HPP
 
-#include <model.hpp>
+#include "model.hpp"
 
 class Scheme
 {
@@ -36,6 +36,27 @@ public:
 
 // Smart pointers to Euler objects
 typedef shared_ptr<Euler> eulerPtr;
+
+class PhiScheme : public Scheme
+{
+public:
+    /** Constructor. */
+    PhiScheme(const modelPtr model, const schemePtr scheme, std::function<double(double)> f);
+    double singleSimulation(mt19937_64& gen, const unsigned int n);
+    pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
+
+protected:
+    schemePtr m_scheme;
+    std::function<double(double)> m_f;
+};
+
+
+
+//template<typename state> void saySomething(state thisstate)
+//{
+//    cout << thisstate << endl;
+//}
+
 
 
 #endif // SCHEME_HPP

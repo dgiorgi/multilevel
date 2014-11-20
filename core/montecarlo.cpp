@@ -60,7 +60,6 @@ double DoubleMonteCarlo::operator()(const unsigned int N){
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
     for (unsigned int i=0; i< N; ++i) {
-//        Euler euler(m_model);
         pair<double, double> x = m_scheme->doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
         double diff = m_f(x.second) - m_f(x.first) ;
         m_sum += diff;

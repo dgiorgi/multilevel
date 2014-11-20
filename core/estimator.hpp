@@ -1,7 +1,7 @@
 #ifndef ESTIMATOR_HPP
 #define ESTIMATOR_HPP
 
-#include <multilevelparameters.hpp>
+#include "multilevelparameters.hpp"
 
 /**
  * @brief The Estimator class

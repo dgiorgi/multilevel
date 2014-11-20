@@ -90,3 +90,36 @@ pair<double, double> Euler::doubleSimulation(mt19937_64& gen, const unsigned int
 
     return pair<double, double>(X_n1_i,X_n2_i);
 }
+
+/**
+ * @param model Pointer to the model
+ * @param scheme Pointer to the scheme
+ */
+PhiScheme::PhiScheme(const modelPtr model, const schemePtr scheme, std::function<double(double)> f): Scheme(model), m_scheme(scheme), m_f(f){}
+
+/**
+ * @brief PhiScheme::singleSimulation
+ * @param gen
+ * @param n
+ * @return
+ */
+double PhiScheme::singleSimulation(mt19937_64 &gen, const unsigned int n)
+{
+//    double currentTime = 0.;
+
+//    double X_i = m_model->getStartingPoint();
+//    double h = m_model->getMaturity()/(double)n;
+
+//    for (unsigned int i=0; i<n; i++){
+//        X_i += m_model->drift(currentTime,X_i)*h + m_model->sigma(currentTime, X_i)*sqrt(h)*m_model->random(gen);
+//        currentTime += h;
+//    }
+
+//    return X_i;
+    return 0;
+}
+
+pair<double, double> PhiScheme::doubleSimulation(mt19937_64 &gen, const unsigned int n1, const unsigned int n2)
+{
+    return pair<double,double>(0,0);
+}

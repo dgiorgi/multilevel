@@ -1,10 +1,11 @@
 #ifndef STRUCTURALPARAMETERS_HPP
 #define STRUCTURALPARAMETERS_HPP
 
-#include <montecarlo.hpp>
 #include <math.h>
 #include <iostream>
 #include <fstream>
+
+#include "montecarlo.hpp"
 
 /**
  * @brief The StructuralParameters class

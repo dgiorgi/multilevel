@@ -2,9 +2,10 @@
 #define MONTECARLO_HPP
 
 #include <functional>
-#include <model.hpp>
 #include <math.h>
-#include <scheme.hpp>
+
+#include "model.hpp"
+#include "scheme.hpp"
 
 /**
  * @brief The MonteCarlo class
