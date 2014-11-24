@@ -23,8 +23,7 @@ vector<double> callBlackScholes(double x0, double r, double sigma, double K, dou
     eulerPtr eulerScheme(new Euler(BS));
     
     auto call = [=](Eigen::VectorXd x) {
-        Eigen::VectorXd scalar = eigen_weights*x;
-        double sum = scalar.sum();
+        double sum = eigen_weights.dot(x);
         return sum > K ? exp(-r*T)*(sum - K) : 0; };
     
     // We set the Monte Carlo object that we will use to inizialize the structural parameters

@@ -130,8 +130,9 @@ pair<Eigen::VectorXd, Eigen::VectorXd> Euler::doubleSimulation(mt19937_64& gen, 
 ///**
 // * @param model Pointer to the model
 // * @param scheme Pointer to the scheme
+// * @param phi Path dependant fonctional
 // */
-//PhiScheme::PhiScheme(const modelPtr model, const schemePtr scheme, std::function<double(double)> f): Scheme(model), m_scheme(scheme), m_f(f){}
+//PhiScheme::PhiScheme(const modelPtr model, const schemePtr scheme, std::function<Eigen::VectorXd(Eigen::VectorXd)> phi): m_model(model), m_scheme(scheme), m_phi(phi){}
 
 ///**
 // * @brief Method to make a transition of step h, at time t, starting from x and with a random realization random.
@@ -141,6 +142,12 @@ pair<Eigen::VectorXd, Eigen::VectorXd> Euler::doubleSimulation(mt19937_64& gen, 
 // * @param h Time step.
 // * @param r Random realization.
 // */
+//Eigen::VectorXd PhiScheme::transition(double t, Eigen::VectorXd x, double h, Eigen::VectorXd r)
+//{
+//    Eigen::VectorXd result = x + m_model->drift(t,x)*h + m_model->sigma(t, x)*r;
+
+//}
+
 //double PhiScheme::transition(double t, double x, double h, double r)
 //{
 ////    return m_model->drift(t,x)*h + m_model->sigma(t, x)*sqrt(h)*m_model->random(gen);

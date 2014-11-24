@@ -46,25 +46,26 @@ public:
 // Smart pointers to Euler objects
 typedef shared_ptr<Euler> eulerPtr;
 
-//class PhiScheme : public Scheme
+//class PhiScheme
 //{
 //public:
 //    /** Constructor. */
-//    PhiScheme(const modelPtr model, const schemePtr scheme, std::function<double(double)> f);
+//    PhiScheme(const modelPtr model, const schemePtr scheme, std::function<Eigen::VectorXd(Eigen::VectorXd)> phi);
 
-//    double transition(double t, double x, double h, double random);
-//    pair<double,double> pairTransition(mt19937_64& gen, double t, pair<double, double> x, double h, unsigned int n);
+//    pair<Eigen::VectorXd,Eigen::VectorXd>  transition(double t, pair<Eigen::VectorXd,Eigen::VectorXd> x, double h, Eigen::VectorXd random);
+//    pair<pair<Eigen::VectorXd,Eigen::VectorXd>,pair<Eigen::VectorXd,Eigen::VectorXd>> pairTransition(mt19937_64& gen, double t, pair<pair<Eigen::VectorXd,Eigen::VectorXd>,pair<Eigen::VectorXd,Eigen::VectorXd>>  x, double h, unsigned int n);
 
-//    double singleSimulation(mt19937_64& gen, const unsigned int n);
-//    pair<double, double> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
+//    pair<Eigen::VectorXd, Eigen::VectorXd> singleSimulation(mt19937_64& gen, const unsigned int n);
+//    pair<pair<Eigen::VectorXd,Eigen::VectorXd>,pair<Eigen::VectorXd,Eigen::VectorXd>> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
 
 //protected:
+//    modelPtr m_model;
 //    schemePtr m_scheme;
-//    std::function<double(double)> m_f;
+//    std::function<double(double)> m_phi;
 //};
 
-//// Smart pointers to PhiScheme objects
-//typedef shared_ptr<PhiScheme> phiSchemePtr;
+// Smart pointers to PhiScheme objects
+typedef shared_ptr<PhiScheme> phiSchemePtr;
 
 //template<typename state> void saySomething(state thisstate)
 //{
