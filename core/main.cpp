@@ -31,7 +31,7 @@ int main() {
     Eigen::MatrixXd rho(sizeW,sizeW); rho << 1.;
     double K = 100;
     double T = 5;
-    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r,sigma, rho, x0, T));
+    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r, sigma, rho, x0, T));
     eulerPtr eulerScheme(new Euler(BS));
     
     auto call = [=](Eigen::VectorXd x) {

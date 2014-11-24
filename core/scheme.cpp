@@ -22,7 +22,7 @@ Euler::Euler(const modelPtr model): Scheme(model){}
  */
 Eigen::VectorXd Euler::transition(double t, Eigen::VectorXd x, double h, Eigen::VectorXd r)
 {
-    return m_model->drift(t,x)*h + sqrt(h)*m_model->sigma(t, x)*r;
+    return x + m_model->drift(t,x)*h + sqrt(h)*m_model->sigma(t, x)*r;
 }
 
 /**
@@ -50,7 +50,7 @@ pair<Eigen::VectorXd, Eigen::VectorXd> Euler::pairTransition(mt19937_64 &gen, do
     // We make n transitions on the finest process, keeping memory of the random realizations
     for (unsigned int i=0; i<n; ++i){
         randomRealization = m_model->random(gen)*sqrt(h_n);
-        X_n = transition(t + i*h_n, X_n, h, randomRealization);
+        X_n = transition(t + i*h_n, X_n, h_n, randomRealization);
         randomRealizationSum += randomRealization;
     }
 
