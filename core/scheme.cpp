@@ -22,7 +22,7 @@ Euler::Euler(const modelPtr model): Scheme(model){}
  */
 Eigen::VectorXd Euler::transition(double t, Eigen::VectorXd x, double h, Eigen::VectorXd r)
 {
-    return x + m_model->drift(t,x)*h + sqrt(h)*m_model->sigma(t, x)*r;
+    return x + m_model->drift(t,x)*h + m_model->sigma(t, x)*r;
 }
 
 /**
@@ -75,7 +75,7 @@ Eigen::VectorXd Euler::singleSimulation(mt19937_64& gen, const unsigned int n)
     Eigen::VectorXd X_i = m_model->getStartingPoint();
     double h = m_model->getMaturity()/(double)n;
     for (unsigned int i=0; i<n; i++){
-        Eigen::VectorXd random = m_model->random(gen);
+        Eigen::VectorXd random = sqrt(h)*m_model->random(gen);
         X_i = transition(currentTime, X_i, h, random);
         currentTime += h;
     }
