@@ -9,7 +9,7 @@ using namespace std;
  * @param multilevelParams Multilevel parameters associated to this estimator.
  */
 Estimator::Estimator(mt19937_64& gen,
-                     std::function<double(double)> f,
+                     std::function<double(Eigen::VectorXd)> f,
                      const schemePtr scheme,
                      const MultilevelParameters multilevelParams):
     m_gen(gen), m_f(f), m_scheme(scheme), m_multilevelParams(multilevelParams)
@@ -40,14 +40,14 @@ double Estimator::compute()
     for (unsigned int j=1; j<R; ++j){
         unsigned int N_j = ceil(N*q[j]);
 
-        function<double(double)> newF;
+        function<double(Eigen::VectorXd)> newF;
 
         // We switch between the two cases, MC and RR
         // and in the RR case we modify the function by making the product with the weight W[j]
         switch(estimatorType){
         case RR: {
             double W_j = m_multilevelParams.getWeights()[j];
-            newF = [=](double x){return W_j*m_f(x);};
+            newF = [=](Eigen::VectorXd x){return W_j*m_f(x);};
             break;
         }
         case MC:{

@@ -27,7 +27,7 @@ class Estimator
 public:
     /** Constructor. */
     Estimator(mt19937_64& gen,
-              std::function<double(double)> f,
+              std::function<double(Eigen::VectorXd)> f,
               const schemePtr scheme,
               const MultilevelParameters multilevelParams);
     /** Method to compute the estimator */
@@ -37,7 +37,7 @@ protected:
     /** Generator for the random variable. */
     mt19937_64& m_gen;
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
-    std::function<double(double)> m_f;
+    std::function<double(Eigen::VectorXd)> m_f;
     /** Scheme for simulation.*/
     schemePtr m_scheme;
     /** Multilevel parameters which define the estimator. */
