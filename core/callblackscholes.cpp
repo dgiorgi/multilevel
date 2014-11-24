@@ -9,12 +9,23 @@ vector<double> callBlackScholes(double x0, double r, double sigma, double K, dou
 
     generator gen = generator(seed);
 
-    // We define the Black and Scholes model
-    //double x0=100, r=0.05, sigma=0.2, K=100, T=5;
-    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r,sigma, x0, T));
+    // We define the one dimensional Black and Scholes model
+    int sizeX = 1;
+    int sizeW = 1;
+    Eigen::VectorXd eigen_x0(sizeX); eigen_x0 << x0;
+    Eigen::VectorXd eigen_weights(sizeX); eigen_weights << 1;
+    Eigen::MatrixXd eigen_sigma(sizeX,sizeW); eigen_sigma << sigma;
+    Eigen::MatrixXd eigen_rho(sizeW,sizeW); eigen_rho << 1.;
+
+
+
+    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r, eigen_sigma, eigen_rho, eigen_x0, T));
     eulerPtr eulerScheme(new Euler(BS));
     
-    auto call = [=](double x) { return x > K ? exp(-r*T)*(x - K) : 0; };
+    auto call = [=](Eigen::VectorXd x) {
+        Eigen::VectorXd scalar = eigen_weights*x;
+        double sum = scalar.sum();
+        return sum > K ? exp(-r*T)*(sum - K) : 0; };
     
     // We set the Monte Carlo object that we will use to inizialize the structural parameters
     // We recall that h = min (1,T). ... a verifier
@@ -29,7 +40,7 @@ vector<double> callBlackScholes(double x0, double r, double sigma, double K, dou
 
     // We define the structural parameters
     StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
-    structParam.computeParameters(gen, std::function<double(double const &)>(call), eulerScheme, N);
+    structParam.computeParameters(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, N);
 
     // We compute the multilevel parameters with a tolerance epsilon
     double epsilon = pow(2.0, -1);
@@ -38,8 +49,8 @@ vector<double> callBlackScholes(double x0, double r, double sigma, double K, dou
     MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
 
     // We compute the estimators
-    Estimator estimatorMC(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamMC);
-    Estimator estimatorRR(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamRR);
+    Estimator estimatorMC(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamMC);
+    Estimator estimatorRR(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamRR);
 
     double estimatorValueMC = estimatorMC.compute();
     double estimatorValueRR = estimatorRR.compute();

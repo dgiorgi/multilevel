@@ -19,7 +19,8 @@ callblackscholes_module = Extension('_callblackscholes',
                                     'functions.cpp',
                                     'estimator.cpp',
                                     'scheme.cpp'],
-                           extra_compile_args=['-std=c++11']
+                           extra_compile_args=['-std=c++11'],
+                           include_dirs = ['/usr/include/eigen']
                            )
 
 setup (name = 'callblackscholes',
