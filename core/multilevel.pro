@@ -18,3 +18,5 @@ HEADERS += \
     functions.hpp \
     estimator.hpp \
     scheme.hpp
+
+INCLUDEPATH += /usr/include/eigen
