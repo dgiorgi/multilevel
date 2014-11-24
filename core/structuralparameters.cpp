@@ -27,7 +27,7 @@ StructuralParameters::StructuralParameters(const double alpha,
  * @param N Number of simulations.
  */
 void StructuralParameters::computeParameters(mt19937_64& gen,
-                                             std::function<double(double)> f,
+                                             std::function<double(Eigen::VectorXd)> f,
                                              const schemePtr scheme,
                                              const unsigned int N)
 {
@@ -55,7 +55,7 @@ void StructuralParameters::computeParameters(mt19937_64& gen,
  * @param N Number of simulations.
  */
 void StructuralParameters::computeV1(mt19937_64& gen,
-                                     std::function<double(double)> f,
+                                     std::function<double(Eigen::VectorXd)> f,
                                      const schemePtr scheme,
                                      const unsigned int N)
 {
@@ -94,7 +94,7 @@ void StructuralParameters::computeV1(mt19937_64& gen,
  * @param N Number of simulations.
  */
 void StructuralParameters::computeVarY0(mt19937_64& gen,
-                                        std::function<double(double)> f,
+                                        std::function<double(Eigen::VectorXd)> f,
                                         const schemePtr scheme,
                                         const unsigned int N)
 {
