@@ -32,7 +32,7 @@ BlackAndScholes::BlackAndScholes(const double b,
 }
 
 /**
- * @brief Generate the random realization of \f$(dW_1, \ldots, dW_p)\f$ with correlation matrix \f$\rho_{i,j} = d\langle W_i, w_j \rangle \f$
+ * @brief Generate the random realization of \f$(dW_1, \ldots, dW_p)\f$ with correlation matrix \f$\rho_{i,j}dt = d\langle W_i, w_j \rangle \f$
  *
  * @param gen Random generator
  * @return randomRealization \f$(dW_1, \ldots, dW_p)\f$

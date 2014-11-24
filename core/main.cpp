@@ -12,6 +12,8 @@
 #include <estimator.hpp>
 #include <scheme.hpp>
 
+#include <Eigen/Dense>
+
 using namespace std;
 
 int main() {
@@ -20,11 +22,22 @@ int main() {
     generator gen = generator(seed);
 
     // We define the Black and Scholes model
-    double x0=100, r=0.05, sigma=0.2, K=100, T=5;
-    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r,sigma, x0, T));
+    int sizeX = 1;
+    int sizeW = 1;
+    Eigen::VectorXd x0(sizeX); x0 << 100;
+    Eigen::VectorXd weights(sizeX); weights << 1;
+    double r=0.05;
+    Eigen::MatrixXd sigma(sizeX,sizeW); sigma << 0.2;
+    Eigen::MatrixXd rho(sizeW,sizeW); rho << 1.;
+    double K = 100;
+    double T = 5;
+    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r,sigma, rho, x0, T));
     eulerPtr eulerScheme(new Euler(BS));
     
-    auto call = [=](double x) { return x > K ? exp(-r*T)*(x - K) : 0; };
+    auto call = [=](Eigen::VectorXd x) {
+        Eigen::VectorXd scalar = weights*x;
+        double sum = scalar.sum();
+        return sum > K ? exp(-r*T)*(sum - K) : 0; };
     
     // We set the Monte Carlo object that we will use to inizialize the structural parameters
     // We recall that h = min (1,T). ... a verifier
@@ -39,7 +52,7 @@ int main() {
 
     // We define the structural parameters
     StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
-    structParam.computeParameters(gen, std::function<double(double const &)>(call), eulerScheme, N);
+    structParam.computeParameters(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, N);
 
     // We compute the multilevel parameters with a tolerance epsilon
     double epsilon = pow(2.0, -1);
@@ -48,8 +61,8 @@ int main() {
     MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
 
     // We compute the estimators
-    Estimator estimatorMC(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamMC);
-    Estimator estimatorRR(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamRR);
+    Estimator estimatorMC(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamMC);
+    Estimator estimatorRR(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamRR);
 
     double estimatorValueMC = estimatorMC.compute();
     double estimatorValueRR = estimatorRR.compute();
@@ -63,7 +76,7 @@ int main() {
     cout << "Estimator value MC " << estimatorValueMC << endl;
     cout << "Estimator value RR " << estimatorValueRR << endl;
 
-    double callBS = call_black_scholes(x0, K, r, sigma, T);
+    double callBS = call_black_scholes(100, 100, r, 0.2, T);
 
     cout << "Call price " << callBS << endl;
 }
