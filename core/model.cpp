@@ -26,16 +26,27 @@ BlackAndScholes::BlackAndScholes(const double b,
                                  const double tF):
     Model(x0, tF), m_b(b), m_s(s), m_rho(rho), m_gaussian(0.0,1.0)
 {
-    // We make the Cholesky decomposition of the correlation matrix
+    // Make the Cholesky decomposition of the correlation matrix
     Eigen::LLT<Eigen::MatrixXd> cholesky = m_rho.llt();
     m_L = cholesky.matrixL();
 }
 
+/**
+ * @brief Generate the random realization of \f$(dW_1, \ldots, dW_p)\f$ with correlation matrix \f$\rho_{i,j} = d\langle W_i, w_j \rangle \f$
+ *
+ * @param gen Random generator
+ * @return randomRealization \f$(dW_1, \ldots, dW_p)\f$
+ */
 Eigen::VectorXd BlackAndScholes::random(mt19937_64 &gen)
 {
-    int size = m_x0.rows();
+    // Generate n realizations of indipendent gaussian laws
+    int size = m_L.rows();
     Eigen::VectorXd randomRealization(size);
     for (int i=0; i<size; ++i)
         randomRealization << m_gaussian(gen);
+
+    // Make the product with the matrix L coming from the Cholesky decomposition of the correlation matrix
+    randomRealization = m_L*randomRealization;
+
     return randomRealization;
 }
