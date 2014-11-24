@@ -3,14 +3,14 @@
 /**
  * @param gen Generator for the random variable
  * @param f Function of the random variable that we simulate \f$f(X_T)\f$
- * @param model Model for \f$X_t\f$
+ * @param scheme Scheme for the simulation of \f$X_t\f$
  * @param modelSize Discretization size of the SDE
  */
 MonteCarlo::MonteCarlo(mt19937_64& gen,
-                       std::function<double(double)> f,
-                       const modelfPtr model,
+                       std::function<double(Eigen::VectorXd)> f,
+                       const schemePtr scheme,
                        const unsigned int modelSize):
-    m_gen(gen), m_f(f), m_model(model), m_modelSize(modelSize), m_totalN(0), m_sum(0.), m_sumSquares(0.)
+    m_gen(gen), m_f(f), m_scheme(scheme), m_modelSize(modelSize), m_totalN(0), m_sum(0.), m_sumSquares(0.)
 {
 }
 
@@ -23,7 +23,7 @@ double MonteCarlo::operator()(const unsigned int N){
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
     for (unsigned int i=0; i< N; ++i) {
-        double x = m_model->singleSimulation(m_gen, m_modelSize);
+        Eigen::VectorXd x = m_scheme->singleSimulation(m_gen, m_modelSize);
         m_sum += m_f(x);
         m_sumSquares += m_f(x)*m_f(x);
     }
@@ -37,16 +37,16 @@ double MonteCarlo::operator()(const unsigned int N){
 /**
  * @param gen Generator for the random variable
  * @param f Function of the random variable that we simulate \f$f(X_T)\f$
- * @param model Model for \f$X_t\f$
+ * @param scheme Scheme for the simulation of \f$X_t\f$
  * @param modelSize1 First discretization size of the SDE
  * @param modelSize2 Second discretization size of the SDE
  */
 DoubleMonteCarlo::DoubleMonteCarlo(mt19937_64& gen,
-                                   std::function<double(double)> f,
-                                   const modelfPtr model,
+                                   std::function<double(Eigen::VectorXd)> f,
+                                   const schemePtr scheme,
                                    const unsigned int modelSize1,
                                    const unsigned int modelSize2):
-    m_gen(gen), m_f(f), m_model(model), m_modelSize1(modelSize1), m_modelSize2(modelSize2), m_totalN(0), m_sum(0.), m_sumSquares(0.)
+    m_gen(gen), m_f(f), m_scheme(scheme), m_modelSize1(modelSize1), m_modelSize2(modelSize2), m_totalN(0), m_sum(0.), m_sumSquares(0.)
 {
 }
 
@@ -60,7 +60,7 @@ double DoubleMonteCarlo::operator()(const unsigned int N){
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
     for (unsigned int i=0; i< N; ++i) {
-        pair<double, double> x = m_model->doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
+        pair<Eigen::VectorXd, Eigen::VectorXd> x = m_scheme->doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
         double diff = m_f(x.second) - m_f(x.first) ;
         m_sum += diff;
         m_sumSquares += diff*diff;

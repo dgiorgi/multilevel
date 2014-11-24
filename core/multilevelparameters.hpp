@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <structuralparameters.hpp>
+#include "structuralparameters.hpp"
 
 const double MY_INF = 2e19;
 

@@ -23,17 +23,17 @@ StructuralParameters::StructuralParameters(const double alpha,
  *
  * @param gen Generator for the random variable.
  * @param f Function \f$f\f$ of the random variable.
- * @param model Model for the random variable.
+ * @param scheme Scheme for the simulation.
  * @param N Number of simulations.
  */
 void StructuralParameters::computeParameters(mt19937_64& gen,
-                                             std::function<double(double)> f,
-                                             const modelfPtr model,
+                                             std::function<double(Eigen::VectorXd)> f,
+                                             const schemePtr scheme,
                                              const unsigned int N)
 {
     // First we compute the var(Y0) and V1
-    computeVarY0(gen, f, model, N);
-    computeV1(gen, f, model, N);
+    computeVarY0(gen, f, scheme, N);
+    computeV1(gen, f, scheme, N);
 
     // And then theta
     computeTheta();
@@ -51,16 +51,17 @@ void StructuralParameters::computeParameters(mt19937_64& gen,
  *
  * @param gen Generator for the random variable.
  * @param f Function \f$f\f$ of the random variable.
- * @param model Model for the random variable.
+ * @param scheme Scheme for the simulation.
  * @param N Number of simulations.
  */
 void StructuralParameters::computeV1(mt19937_64& gen,
-                                     std::function<double(double)> f,
-                                     const modelfPtr model,
+                                     std::function<double(Eigen::VectorXd)> f,
+                                     const schemePtr scheme,
                                      const unsigned int N)
 {
     unsigned int M = 10;
-    double T = model->getMaturity();
+    double T = scheme->getModel()->getMaturity();
+
 
     // Throw error if the rest of T/m_hBold is not 0
     double epsilon = 1e-5;
@@ -73,7 +74,7 @@ void StructuralParameters::computeV1(mt19937_64& gen,
     double beta = m_beta;
 
     // We instanciate a double monte carlo
-    DoubleMonteCarlo Y = DoubleMonteCarlo(gen, f, model, n, M*n);
+    DoubleMonteCarlo Y = DoubleMonteCarlo(gen, f, scheme, n, M*n);
     // We make N simulations
     Y(N);
 
@@ -89,15 +90,15 @@ void StructuralParameters::computeV1(mt19937_64& gen,
  *
  * @param gen Generator for the random variable.
  * @param f Function \f$f\f$ of the random variable.
- * @param model Model for the random variable.
+ * @param scheme Scheme for the simulation.
  * @param N Number of simulations.
  */
 void StructuralParameters::computeVarY0(mt19937_64& gen,
-                                        std::function<double(double)> f,
-                                        const modelfPtr model,
+                                        std::function<double(Eigen::VectorXd)> f,
+                                        const schemePtr scheme,
                                         const unsigned int N)
 {
-    double T = model->getMaturity();
+    double T = scheme->getModel()->getMaturity();
 
     // Throw error if the rest of T/m_hBold is not 0
     double epsilon = 1e-5;
@@ -109,7 +110,7 @@ void StructuralParameters::computeVarY0(mt19937_64& gen,
     int n = T/m_hBold;
 
     // We instanciate a single Monte Carlo
-    MonteCarlo Y = MonteCarlo(gen, f, model, n);
+    MonteCarlo Y = MonteCarlo(gen, f, scheme, n);
     // We make N simulations
     Y(N);
     m_varY0 = Y.var();

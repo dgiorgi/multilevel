@@ -5,14 +5,14 @@ using namespace std;
 /**
  * @param gen Generator for the random variable
  * @param f Function of the random variable that we simulate \f$f(X_T)\f$
- * @param model Model for \f$X_t\f$
+ * @param scheme Scheme for the simulation of \f$X_t\f$
  * @param multilevelParams Multilevel parameters associated to this estimator.
  */
 Estimator::Estimator(mt19937_64& gen,
-                     std::function<double(double)> f,
-                     const modelfPtr model,
+                     std::function<double(Eigen::VectorXd)> f,
+                     const schemePtr scheme,
                      const MultilevelParameters multilevelParams):
-    m_gen(gen), m_f(f), m_model(model), m_multilevelParams(multilevelParams)
+    m_gen(gen), m_f(f), m_scheme(scheme), m_multilevelParams(multilevelParams)
 {
 }
 
@@ -34,20 +34,20 @@ double Estimator::compute()
     // We first compute the first term by single Monte Carlo simulation
     // This term is the same for both methods
     unsigned int N_0 = ceil(N*q[0]);
-    MonteCarlo monteCarlo = MonteCarlo(m_gen, m_f, m_model, hInverse);
+    MonteCarlo monteCarlo = MonteCarlo(m_gen, m_f, m_scheme, hInverse);
     sum += monteCarlo(N_0);
 
     for (unsigned int j=1; j<R; ++j){
         unsigned int N_j = ceil(N*q[j]);
 
-        function<double(double)> newF;
+        function<double(Eigen::VectorXd)> newF;
 
         // We switch between the two cases, MC and RR
         // and in the RR case we modify the function by making the product with the weight W[j]
         switch(estimatorType){
         case RR: {
             double W_j = m_multilevelParams.getWeights()[j];
-            newF = [=](double x){return W_j*m_f(x);};
+            newF = [=](Eigen::VectorXd x){return W_j*m_f(x);};
             break;
         }
         case MC:{
@@ -56,7 +56,7 @@ double Estimator::compute()
         }
         }
         // We make the Monte Carlo
-        DoubleMonteCarlo monteCarlo = DoubleMonteCarlo(m_gen, newF, m_model, hInverse*n[j-1], hInverse*n[j]);
+        DoubleMonteCarlo monteCarlo = DoubleMonteCarlo(m_gen, newF, m_scheme, hInverse*n[j-1], hInverse*n[j]);
         sum += monteCarlo(N_j);
     }
 

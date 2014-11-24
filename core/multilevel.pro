@@ -7,7 +7,8 @@ SOURCES += \
     multilevelparameters.cpp \
     montecarlo.cpp \
     functions.cpp \
-    estimator.cpp
+    estimator.cpp \
+    scheme.cpp
 
 HEADERS += \
     structuralparameters.hpp \
@@ -17,3 +18,5 @@ HEADERS += \
     functions.hpp \
     estimator.hpp \
     scheme.hpp
+
+INCLUDEPATH += /usr/include/eigen

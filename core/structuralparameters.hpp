@@ -1,10 +1,11 @@
 #ifndef STRUCTURALPARAMETERS_HPP
 #define STRUCTURALPARAMETERS_HPP
 
-#include <montecarlo.hpp>
 #include <math.h>
 #include <iostream>
 #include <fstream>
+
+#include "montecarlo.hpp"
 
 /**
  * @brief The StructuralParameters class
@@ -38,16 +39,16 @@ public:
 
     /** @name Compute parameters functions*/
     void computeParameters(mt19937_64& gen,
-                           std::function<double(double)> f,
-                           const modelfPtr model,
+                           std::function<double(Eigen::VectorXd)> f,
+                           const schemePtr scheme,
                            const unsigned int N);
     void computeV1(mt19937_64& gen,
-                   std::function<double(double)> f,
-                   const modelfPtr model,
+                   std::function<double(Eigen::VectorXd)> f,
+                   const schemePtr scheme,
                    const unsigned int N);
     void computeVarY0(mt19937_64& gen,
-                      std::function<double(double)> f,
-                      const modelfPtr model,
+                      std::function<double(Eigen::VectorXd)> f,
+                      const schemePtr scheme,
                       const unsigned int N);
     void computeTheta();
     void displayParameters();

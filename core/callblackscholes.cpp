@@ -1,41 +1,29 @@
-#include <iostream>
-#include <fstream>
-#include <random>
-#include <chrono>
-#include <iomanip>  // for setprecision
-
-#include <functions.hpp>
-#include <model.hpp>
-#include <montecarlo.hpp>
-#include <structuralparameters.hpp>
-#include <multilevelparameters.hpp>
-#include <estimator.hpp>
-#include <scheme.hpp>
-
-#include <Eigen/Dense>
+#include "callblackscholes.hpp"
 
 using namespace std;
 
-int main() {
+vector<double> callBlackScholes(double x0, double r, double sigma, double K, double T, unsigned int seed) {
     typedef mt19937_64 generator;
-    unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+    if (seed == 0)
+        seed = std::chrono::system_clock::now().time_since_epoch().count();
+
     generator gen = generator(seed);
 
-    // We define the Black and Scholes model
+    // We define the one dimensional Black and Scholes model
     int sizeX = 1;
     int sizeW = 1;
-    Eigen::VectorXd x0(sizeX); x0 << 100;
-    Eigen::VectorXd weights(sizeX); weights << 1;
-    double r=0.05;
-    Eigen::MatrixXd sigma(sizeX,sizeW); sigma << 0.2;
-    Eigen::MatrixXd rho(sizeW,sizeW); rho << 1.;
-    double K = 100;
-    double T = 5;
-    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r, sigma, rho, x0, T));
+    Eigen::VectorXd eigen_x0(sizeX); eigen_x0 << x0;
+    Eigen::VectorXd eigen_weights(sizeX); eigen_weights << 1;
+    Eigen::MatrixXd eigen_sigma(sizeX,sizeW); eigen_sigma << sigma;
+    Eigen::MatrixXd eigen_rho(sizeW,sizeW); eigen_rho << 1.;
+
+
+
+    blackAndScholesfPtr BS = blackAndScholesfPtr(new BlackAndScholes(r, eigen_sigma, eigen_rho, eigen_x0, T));
     eulerPtr eulerScheme(new Euler(BS));
     
     auto call = [=](Eigen::VectorXd x) {
-        Eigen::VectorXd scalar = weights*x;
+        Eigen::VectorXd scalar = eigen_weights*x;
         double sum = scalar.sum();
         return sum > K ? exp(-r*T)*(sum - K) : 0; };
     
@@ -76,7 +64,15 @@ int main() {
     cout << "Estimator value MC " << estimatorValueMC << endl;
     cout << "Estimator value RR " << estimatorValueRR << endl;
 
-    double callBS = call_black_scholes(100, 100, r, 0.2, T);
+    double callBS = call_black_scholes(x0, K, r, sigma, T);
 
     cout << "Call price " << callBS << endl;
+
+    vector<double> result = vector<double>();
+    result.push_back(estimatorValueMC); 
+    result.push_back(estimatorValueRR);
+    result.push_back(callBS);
+
+    return result;
 }
+
