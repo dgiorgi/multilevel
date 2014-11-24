@@ -17,7 +17,7 @@ class MonteCarlo
 public:
     /** Constructor. */
     MonteCarlo(mt19937_64& gen,
-               std::function<double(double)> f,
+               std::function<double(Eigen::VectorXd)> f,
                const schemePtr scheme,
                const unsigned int modelSize);
 
@@ -42,7 +42,7 @@ public:
     /** Generator getter. */
     mt19937_64& getGenerator() const {return m_gen;}
     /** Function \f$f\f$ getter. */
-    std::function<double(double)> getF() const {return m_f;}
+    std::function<double(Eigen::VectorXd)> getF() const {return m_f;}
     /** Scheme getter. */
     schemePtr getScheme() const {return m_scheme;}
     /** Model discretization size getter. */
@@ -55,7 +55,7 @@ protected:
     /** Generator for the random variable. */
     mt19937_64& m_gen;
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
-    std::function<double(double)> m_f;
+    std::function<double(Eigen::VectorXd)> m_f;
 //    /** Model for the random variable. For the moment a SDE.*/
 //    modelPtr m_model;
     /** Scheme for the simulation.*/
@@ -81,7 +81,7 @@ class DoubleMonteCarlo
 public:
     /** Constructor. */
     DoubleMonteCarlo(mt19937_64& gen,
-                     std::function<double(double)> f,
+                     std::function<double(Eigen::VectorXd)> f,
                      const schemePtr scheme,
                      const unsigned int modelDisc1,
                      const unsigned int modelDisc2);
@@ -108,7 +108,7 @@ public:
     /** Generator getter. */
     mt19937_64& getGenerator() const {return m_gen;}
     /** Function \f$f\f$ getter. */
-    std::function<double(double)> getF() const {return m_f;}
+    std::function<double(Eigen::VectorXd)> getF() const {return m_f;}
     /** Scheme getter. */
     schemePtr getScheme() const {return m_scheme;}
     /** First discretization size getter. */
@@ -123,7 +123,7 @@ protected:
     /** Generator for the random variable. */
     mt19937_64& m_gen;
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
-    std::function<double(double)> m_f;
+    std::function<double(Eigen::VectorXd)> m_f;
     /** Scheme for the simulation.*/
     schemePtr m_scheme;
     /** First discretization size of the random variable. */
