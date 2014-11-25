@@ -13,12 +13,8 @@ callblackscholes_module = Extension('_callblackscholes',
                            sources=['callblackscholes_wrap.cxx', 
                                     'callblackscholes.cpp', 
                                     'structuralparameters.cpp',
-                                    'model.cpp',
                                     'multilevelparameters.cpp',
-                                    'montecarlo.cpp',
-                                    'functions.cpp',
-                                    'estimator.cpp',
-                                    'scheme.cpp'],
+                                    'functions.cpp'],
                            extra_compile_args=['-std=c++11'],
                            include_dirs = ['/usr/include/eigen']
                            )
