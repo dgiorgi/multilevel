@@ -2,51 +2,45 @@
 
 #include <chrono>
 
-/**
- * @param x0 Starting point.
- * @param tF Maturity.
- */
-Model::Model(const Eigen::VectorXd x0, const double tF) :
-    m_x0(x0), m_tF(tF)
-{
-}
-
 
 /**
- * @param b Drift constant.
- * @param s Volatility matrix.
- * @param Correlation matrix.
- * @param x0 Starting point.
- * @param tF Maturity.
+ * @param alpha \f$\alpha\f$
+ * @param beta \f$\beta\f$
+ * @param sigma \f$\sigma\f$ Volatility
+ * @param rho \f$\rho\f$ Correlation
+ * @param x0 \f$x_0\f$ Starting point
+ * @param tF \f$T_F\f$ Maturity
  */
-BlackAndScholes::BlackAndScholes(const double b,
-                                 const Eigen::MatrixXd s,
-                                 const Eigen::MatrixXd rho,
-                                 const Eigen::VectorXd x0,
-                                 const double tF):
-    Model(x0, tF), m_b(b), m_s(s), m_rho(rho), m_gaussian(0.0,1.0)
+SABR::SABR(const double alpha,
+           const double beta,
+           const Eigen::Matrix2d sigma,
+           const double rho,
+           const Eigen::Vector2d x0,
+           const double tF):
+    Model<Eigen::Vector2d, Eigen::Matrix2d, Eigen::Vector2d>(x0, tF), m_alpha(alpha), m_beta(beta), m_s(sigma), m_rho(rho), m_gaussian(0.0,1.0)
 {
     // Make the Cholesky decomposition of the correlation matrix
-    Eigen::LLT<Eigen::MatrixXd> cholesky = m_rho.llt();
-    m_L = cholesky.matrixL();
+    m_L << 1, 0, m_rho, sqrt(1-rho*rho);
 }
 
 /**
- * @brief Generate the random realization of \f$(dW_1, \ldots, dW_p)\f$ with correlation matrix \f$\rho_{i,j}dt = d\langle W_i, w_j \rangle \f$
- *
- * @param gen Random generator
- * @return randomRealization \f$(dW_1, \ldots, dW_p)\f$
+ * @param t Current time
+ * @param x Current state
+ * @return Volatility
  */
-Eigen::VectorXd BlackAndScholes::random(mt19937_64 &gen)
+Eigen::Matrix2d SABR::sigma(const double t, const Eigen::Vector2d x)
 {
-    // Generate n realizations of indipendent gaussian laws
-    int size = m_L.rows();
-    Eigen::VectorXd randomRealization(size);
-    for (int i=0; i<size; ++i)
-        randomRealization << m_gaussian(gen);
+    Eigen::Matrix2d vol;
+    vol << x[0]*pow(x[1], m_beta), 0, 0, m_alpha*x[1];
+    return vol;
+}
 
-    // Make the product with the matrix L coming from the Cholesky decomposition of the correlation matrix
-    randomRealization = m_L*randomRealization;
-
-    return randomRealization;
+/**
+ * @param gen Random generator
+ * @return Random realization of \f$ (dW,dZ)\f$ with correlation \f$\rho\f$
+ */
+Eigen::Vector2d SABR::random(mt19937_64 &gen)
+{
+    Eigen::Vector2d gauss(m_gaussian(gen), m_gaussian(gen));
+    return m_L*gauss;
 }

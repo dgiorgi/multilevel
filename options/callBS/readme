@@ -1,0 +1,10 @@
+g++ -std=c++11 -I/usr/include/eigen -I../../core ../../core/structuralparameters.cpp  ../../core/multilevelparameters.cpp ../../core/functions.cpp ../../core/model.cpp main.cpp
+
+or
+
+g++ -c -std=c++11 -I/usr/include/eigen -I../../core ../../core/structuralparameters.cpp  ../../core/multilevelparameters.cpp ../../core/functions.cpp ../../core/model.cpp callblackscholes.cpp
+
+Swig:
+
+swig -c++ -python callblackscholes.i
+python setup.py build_ext --inplace
