@@ -194,9 +194,7 @@ RandomType BlackAndScholes<StateType, VolType, CorrType, RandomType>::random(mt1
  * \f[dF_t = \sigma_t F_t^{\beta}dW_t\f]
  * \f[d\sigma_t = \alpha \sigma_t dZ_t\f]
  *
- * with \f$d\langle W_t, Z_t \rangle = \rho dt \f$
- * \f[F_0=f_0\f]
- * \f[Z_0=z_0\f]
+ * with \f$d\langle W_t, Z_t \rangle = \rho dt \f$, \f$F_0=f_0\f$ and \f$Z_0=z_0\f$.
  */
 class SABR : public Model<Eigen::Vector2d, Eigen::Matrix2d, Eigen::Vector2d>
 {
