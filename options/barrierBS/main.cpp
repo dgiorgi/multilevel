@@ -18,66 +18,72 @@ using namespace std;
 
 int main() {
 
+    // We define the Black and Scholes model
+    double x0 = 100;
+    double r = 0.;
+    double sigma = 0.15;
+    double K = 100;
+    double T = 1;
+    double L = 130;
 
-//    // We define the Black and Scholes model
-//    double x0 = 100;
-//    double r=0.05;
-//    double sigma = 0.2;
-//    double K = 100;
-//    double T = 5;
+    typedef mt19937_64 generator;
+    unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
+    generator gen = generator(seed);
 
-//    typedef mt19937_64 generator;
-//    unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
-//    generator gen = generator(seed);
+    // We define the one dimensional Black and Scholes model
+    blackAndScholesfPtr<double, double, double, double> BS(new BlackAndScholes<double, double, double, double>(r, sigma, x0, T));
+    eulerPtr<double, double, double> eulerScheme(new Euler<double, double, double>(BS));
 
-//    // We define the one dimensional Black and Scholes model
-//    blackAndScholesfPtr<double, double, double, double> BS(new BlackAndScholes<double, double, double, double>(r, sigma, x0, T));
-//    eulerPtr<double, double, double> eulerScheme(new Euler<double, double, double>(BS));
+    std::function<double(double, double)> myMax = [](double x,double y) {return max(x,y);};
 
-//    auto call = [=](double x) {return x > K ? exp(-r*T)*(x - K) : 0; };
+    phiSchemePtr<double,double,double> phiScheme(new PhiScheme<double,double,double>(BS, eulerScheme, myMax) ) ;
 
-//    unsigned N = 1e6; // montecarlo simulations for the structural parameters computation
+    function<double(std::pair<double, double> const &)> up_out_call =
+            [=](std::pair<double, double> const & x) -> double { return (x.second < L && x.first > K) ? exp(-r*T)*(x.first - K): 0; };
 
-//    double alpha = 1;
-//    double beta = 1;
-//    double c1 = 1;
-//    //    double H = min(1.,T);
-//    double H = T;
 
-//    // We define the structural parameters
-//    StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
-//    structParam.computeParameters<double, double, double>(gen, std::function<double(double const &)>(call), eulerScheme, N);
+    unsigned N = 1e6; // montecarlo simulations for the structural parameters computation
 
-//    // We compute the multilevel parameters with a tolerance epsilon
-//    double epsilon = pow(2.0, -1);
+    double alpha = 0.5;
+    double beta = 0.5;
+    double c1 = 1;
+    //    double H = min(1.,T);
+    double H = T;
 
-//    MultilevelParameters multilevelParamMC = MultilevelParameters(epsilon, structParam, MC);
-//    MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
+    // We define the structural parameters
+    StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
+    structParam.computeParameters<double, double, double,std::pair<double, double>>(gen, std::function<double(std::pair<double, double> const &)>(up_out_call), phiScheme, N);
 
-//    // We compute the estimators
-//    Estimator<double, double, double> estimatorMC(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamMC);
-//    Estimator<double, double, double> estimatorRR(gen, std::function<double(double const &)>(call), eulerScheme, multilevelParamRR);
+    // We compute the multilevel parameters with a tolerance epsilon
+    double epsilon = pow(2.0, -1);
 
-//    double estimatorValueMC = estimatorMC.compute();
-//    double estimatorValueRR = estimatorRR.compute();
+    MultilevelParameters multilevelParamMC = MultilevelParameters(epsilon, structParam, MC);
+    MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
 
-//    // We display and write the parameters in a file
-//    multilevelParamMC.displayParameters();
-//    multilevelParamRR.displayParameters();
-//    multilevelParamMC.writeParameters("parameters.txt");
-//    multilevelParamRR.writeParameters("parameters.txt");
+    // We compute the estimators
+    Estimator<double, double, double, std::pair<double, double>> estimatorMC(gen, std::function<double(std::pair<double, double> const &)>(up_out_call), phiScheme, multilevelParamMC);
+    Estimator<double, double, double, std::pair<double, double>> estimatorRR(gen, std::function<double(std::pair<double, double> const &)>(up_out_call), phiScheme, multilevelParamRR);
 
-//    cout << "Estimator value MC " << estimatorValueMC << endl;
-//    cout << "Estimator value RR " << estimatorValueRR << endl;
+    double estimatorValueMC = estimatorMC.compute();
+    double estimatorValueRR = estimatorRR.compute();
 
-//    double callBS = call_black_scholes(100, 100, r, 0.2, T);
+    // We display and write the parameters in a file
+    multilevelParamMC.displayParameters();
+    multilevelParamRR.displayParameters();
+    multilevelParamMC.writeParameters("parameters.txt");
+    multilevelParamRR.writeParameters("parameters.txt");
 
-//    cout << "Call price " << callBS << endl;
+    cout << "Estimator value MC " << estimatorValueMC << endl;
+    cout << "Estimator value RR " << estimatorValueRR << endl;
 
-//    vector<double> result = vector<double>();
-//    result.push_back(estimatorValueMC);
-//    result.push_back(estimatorValueRR);
-//    result.push_back(callBS);
+    double true_value = 3.869693;
 
-//    return 0;
+    cout << "True value " << 3.869693 << endl;
+
+    vector<double> result = vector<double>();
+    result.push_back(estimatorValueMC);
+    result.push_back(estimatorValueRR);
+    result.push_back(true_value);
+
+    return 0;
 }

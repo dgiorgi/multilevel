@@ -9,24 +9,26 @@
  * Generic class to define a scheme on the model that will be used to simulate the process.
  *
  */
-template<typename StateType, typename VolType, typename RandomType>
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
 class Scheme
 {
 public:
     /** Constructor. */
     Scheme(const modelPtr<StateType, VolType, RandomType> model);
+    /** Destructor. */
+    virtual ~Scheme(){}
 
     /** Pure virtual function to make a transion. */
-    virtual StateType transition(double t, StateType x, double h, RandomType random) = 0;
+    virtual TransitionType transition(double t, TransitionType x, double h, RandomType random) = 0;
 
     /** Pure virtual function to make a coupled transion. */
-    virtual pair<StateType,StateType> pairTransition(mt19937_64& gen, double t, pair<StateType, StateType> x, double h, unsigned int n) = 0;
+    virtual pair<TransitionType,TransitionType> pairTransition(mt19937_64& gen, double t, pair<TransitionType, TransitionType> x, double h, unsigned int n) = 0;
 
     /** Pure virtual function to simulate a process. */
-    virtual StateType singleSimulation(mt19937_64& gen, const unsigned int n) = 0;
+    virtual TransitionType singleSimulation(mt19937_64& gen, const unsigned int n) = 0;
 
     /** Pure virtual function to simulate two processes. */
-    virtual pair<StateType, StateType> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2) = 0;
+    virtual pair<TransitionType, TransitionType> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2) = 0;
 
     modelPtr<StateType, VolType, RandomType> getModel() const {return m_model;}
 
@@ -42,11 +44,13 @@ protected:
  *
  */
 template<typename StateType, typename VolType, typename RandomType>
-class Euler : public Scheme<StateType, VolType, RandomType>
+class Euler : public Scheme<StateType, VolType, RandomType, StateType>
 {
 public:
     /** Constructor. */
     Euler(const modelPtr<StateType, VolType, RandomType> model);
+    /** Destructor. */
+    ~Euler(){}
 
     StateType transition(double t, StateType x, double h, RandomType random);
     pair<StateType,StateType> pairTransition(mt19937_64& gen, double t, pair<StateType, StateType> x, double h, unsigned int n);
@@ -60,15 +64,15 @@ public:
 /**
  * @param model Pointer to the model.
  */
-template<typename StateType, typename VolType, typename RandomType>
-Scheme<StateType, VolType, RandomType>::Scheme(const modelPtr<StateType, VolType, RandomType> model): m_model(model){}
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
+Scheme<StateType, VolType, RandomType, TransitionType>::Scheme(const modelPtr<StateType, VolType, RandomType> model): m_model(model){}
 
 
 /**
  * @param model Pointer to the model.
  */
 template<typename StateType, typename VolType, typename RandomType>
-Euler<StateType, VolType, RandomType>::Euler(const modelPtr<StateType, VolType, RandomType> model): Scheme<StateType, VolType, RandomType>(model){}
+Euler<StateType, VolType, RandomType>::Euler(const modelPtr<StateType, VolType, RandomType> model): Scheme<StateType, VolType, RandomType, StateType>(model){}
 
 
 /**
@@ -191,25 +195,29 @@ pair<StateType, StateType> Euler<StateType, VolType, RandomType>::doubleSimulati
 }
 
 // Smart pointer to Scheme objects
-template<typename StateType, typename VolType, typename RandomType>
-using schemePtr = shared_ptr<Scheme<StateType, VolType, RandomType>> ;
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
+using schemePtr = shared_ptr<Scheme<StateType, VolType, RandomType, TransitionType>> ;
 
 // Smart pointer to Euler objects
 template<typename StateType, typename VolType, typename RandomType>
 using eulerPtr = shared_ptr<Euler<StateType, VolType, RandomType>>;
+
+
 
 /*------------------------------------------------------------------------------*/
 /*                              PHI SCHEME                                      */
 /*------------------------------------------------------------------------------*/
 
 template <typename StateType, typename VolType, typename RandomType>
-class PhiScheme
+class PhiScheme : public Scheme<StateType, VolType, RandomType, pair<StateType,StateType>>
 {
 public:
     /** Constructor. */
     PhiScheme(const modelPtr<StateType, VolType, RandomType> model,
-              const schemePtr<StateType, VolType, RandomType> scheme,
+              const schemePtr<StateType, VolType, RandomType, StateType> scheme,
               std::function<StateType(StateType, StateType)> phi);
+    /** Destructor. */
+    ~PhiScheme(){}
 
     pair<StateType,StateType>  transition(double t, pair<StateType,StateType> x, double h, RandomType random);
     pair<pair<StateType,StateType>,pair<StateType,StateType>> pairTransition(mt19937_64& gen, double t, pair<pair<StateType,StateType>,pair<StateType,StateType>>  x, double h, unsigned int n);
@@ -218,8 +226,7 @@ public:
     pair<pair<StateType,StateType>,pair<StateType,StateType>> doubleSimulation(mt19937_64& gen, const unsigned int n1, const unsigned int n2);
 
 protected:
-    modelPtr<StateType, VolType, RandomType> m_model;
-    schemePtr<StateType, VolType, RandomType> m_scheme;
+    schemePtr<StateType, VolType, RandomType, StateType> m_scheme;
     std::function<StateType(StateType, StateType)> m_phi;
 };
 
@@ -229,9 +236,9 @@ protected:
  */
 template <typename StateType, typename VolType, typename RandomType>
 PhiScheme<StateType, VolType, RandomType>::PhiScheme(const modelPtr<StateType, VolType, RandomType> model,
-                                                     const schemePtr<StateType, VolType, RandomType> scheme,
+                                                     const schemePtr<StateType, VolType, RandomType, StateType> scheme,
                                                      std::function<StateType(StateType, StateType)> phi):
-    Scheme<StateType, VolType, RandomType>(model), m_scheme(scheme), m_phi(phi){}
+    Scheme<StateType, VolType, RandomType, pair<StateType,StateType>>(model), m_scheme(scheme), m_phi(phi){}
 
 
 /**

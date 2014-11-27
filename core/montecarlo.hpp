@@ -12,14 +12,14 @@
  *
  * Class used to make Monte Carlo simulation \f$\frac{1}{N} \sum_{i=1}^N f(X_T^{(i)})\f$.
  */
-template<typename StateType, typename VolType, typename RandomType>
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
 class MonteCarlo
 {
 public:
     /** Constructor. */
     MonteCarlo(mt19937_64& gen,
-               std::function<double(StateType)> f,
-               const schemePtr<StateType, VolType, RandomType> scheme,
+               std::function<double(TransitionType)> f,
+               const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                const unsigned int modelSize);
 
     /** Method to compute the empirical mean \f$\frac 1 N \sum_{i=1}^N f(X_T^{(i)})\f$. */
@@ -43,9 +43,9 @@ public:
     /** Generator getter. */
     mt19937_64& getGenerator() const {return m_gen;}
     /** Function \f$f\f$ getter. */
-    std::function<double(StateType)> getF() const {return m_f;}
+    std::function<double(TransitionType)> getF() const {return m_f;}
     /** Scheme getter. */
-    schemePtr<StateType, VolType, RandomType> getScheme() const {return m_scheme;}
+    schemePtr<StateType, VolType, RandomType, TransitionType> getScheme() const {return m_scheme;}
     /** Model discretization size getter. */
     unsigned int getModelSize() const {return m_modelSize;}
     /** Total number of simulations getter. */
@@ -56,9 +56,9 @@ protected:
     /** Generator for the random variable. */
     mt19937_64& m_gen;
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
-    std::function<double(StateType)> m_f;
+    std::function<double(TransitionType)> m_f;
     /** Scheme for the simulation.*/
-    schemePtr<StateType, VolType, RandomType> m_scheme;
+    schemePtr<StateType, VolType, RandomType, TransitionType> m_scheme;
     /** Discretization size of the random variable. */
     unsigned int m_modelSize;
     /** Total number of simulations. It's incremented every time we call of the simulation method. */
@@ -75,14 +75,14 @@ protected:
  *
  * Class used to compute \f$\mathbf{E}(Y_{\frac{h}{n1}} - Y_{\frac{h}{n2}})\f$.
  */
-template<typename StateType, typename VolType, typename RandomType>
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
 class DoubleMonteCarlo
 {
 public:
     /** Constructor. */
     DoubleMonteCarlo(mt19937_64& gen,
-                     std::function<double(StateType)> f,
-                     const schemePtr<StateType, VolType, RandomType> scheme,
+                     std::function<double(TransitionType)> f,
+                     const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                      const unsigned int modelDisc1,
                      const unsigned int modelDisc2);
 
@@ -108,9 +108,9 @@ public:
     /** Generator getter. */
     mt19937_64& getGenerator() const {return m_gen;}
     /** Function \f$f\f$ getter. */
-    std::function<double(StateType)> getF() const {return m_f;}
+    std::function<double(TransitionType)> getF() const {return m_f;}
     /** Scheme getter. */
-    schemePtr<StateType, VolType, RandomType> getScheme() const {return m_scheme;}
+    schemePtr<StateType, VolType, RandomType, TransitionType> getScheme() const {return m_scheme;}
     /** First discretization size getter. */
     unsigned int getModelSize1() const {return m_modelSize1;}
     /** Second discretization size getter. */
@@ -123,9 +123,9 @@ protected:
     /** Generator for the random variable. */
     mt19937_64& m_gen;
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
-    std::function<double(StateType)> m_f;
+    std::function<double(TransitionType)> m_f;
     /** Scheme for the simulation.*/
-    schemePtr<StateType, VolType, RandomType> m_scheme;
+    schemePtr<StateType, VolType, RandomType, TransitionType> m_scheme;
     /** First discretization size of the random variable. */
     unsigned int m_modelSize1;
     /** Second discretization size of the random variable. */
@@ -145,10 +145,10 @@ protected:
  * @param scheme Scheme for the simulation of \f$X_t\f$
  * @param modelSize Discretization size of the SDE
  */
-template<typename StateType, typename VolType, typename RandomType>
-MonteCarlo<StateType, VolType, RandomType>::MonteCarlo(mt19937_64& gen,
-                                                       std::function<double(StateType)> f,
-                                                       const schemePtr<StateType, VolType, RandomType> scheme,
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
+MonteCarlo<StateType, VolType, RandomType, TransitionType>::MonteCarlo(mt19937_64& gen,
+                                                       std::function<double(TransitionType)> f,
+                                                       const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                                                        const unsigned int modelSize):
     m_gen(gen), m_f(f), m_scheme(scheme), m_modelSize(modelSize), m_totalN(0), m_sum(0.), m_sumSquares(0.)
 {
@@ -158,13 +158,13 @@ MonteCarlo<StateType, VolType, RandomType>::MonteCarlo(mt19937_64& gen,
  * @param N Number of simulations done.
  * @return Empirical mean of the random variable, computed with the N simulations and the previous calls.
  */
-template<typename StateType, typename VolType, typename RandomType>
-double MonteCarlo<StateType, VolType, RandomType>::operator()(const unsigned int N){
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
+double MonteCarlo<StateType, VolType, RandomType, TransitionType>::operator()(const unsigned int N){
 
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
     for (unsigned int i=0; i< N; ++i) {
-        StateType x = m_scheme->singleSimulation(m_gen, m_modelSize);
+        TransitionType x = m_scheme->singleSimulation(m_gen, m_modelSize);
         m_sum += m_f(x);
         m_sumSquares += m_f(x)*m_f(x);
     }
@@ -182,10 +182,10 @@ double MonteCarlo<StateType, VolType, RandomType>::operator()(const unsigned int
  * @param modelSize1 First discretization size of the SDE
  * @param modelSize2 Second discretization size of the SDE
  */
-template<typename StateType, typename VolType, typename RandomType>
-DoubleMonteCarlo<StateType, VolType, RandomType>::DoubleMonteCarlo(mt19937_64& gen,
-                                                                   std::function<double(StateType)> f,
-                                                                   const schemePtr<StateType, VolType, RandomType> scheme,
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
+DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType>::DoubleMonteCarlo(mt19937_64& gen,
+                                                                   std::function<double(TransitionType)> f,
+                                                                   const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                                                                    const unsigned int modelSize1,
                                                                    const unsigned int modelSize2):
     m_gen(gen), m_f(f), m_scheme(scheme), m_modelSize1(modelSize1), m_modelSize2(modelSize2), m_totalN(0), m_sum(0.), m_sumSquares(0.)
@@ -197,13 +197,13 @@ DoubleMonteCarlo<StateType, VolType, RandomType>::DoubleMonteCarlo(mt19937_64& g
  * @return Empirical mean of the difference between the two random variables,
  * computed with the N simulations and the previous calls.
  */
-template<typename StateType, typename VolType, typename RandomType>
-double DoubleMonteCarlo<StateType, VolType, RandomType>::operator()(const unsigned int N){
+template<typename StateType, typename VolType, typename RandomType, typename TransitionType>
+double DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType>::operator()(const unsigned int N){
 
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
     for (unsigned int i=0; i< N; ++i) {
-        pair<StateType, StateType> x = m_scheme->doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
+        pair<TransitionType, TransitionType> x = m_scheme->doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
         double diff = m_f(x.second) - m_f(x.first) ;
         m_sum += diff;
         m_sumSquares += diff*diff;

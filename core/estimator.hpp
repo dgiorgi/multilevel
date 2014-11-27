@@ -24,14 +24,14 @@ using namespace std;
  * \sum_{j=2}^R \frac{1}{N_j} \sum_{k=1}^{N_j} \mathbf{W}_j(Y_{\frac{h}{n_j}}^{(j),k} - Y_{\frac{h}{n_{j-1}}}^{(j),k})\f]
  * for Richardson-Romberg.
  */
-template <typename StateType, typename VolType, typename RandomType>
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
 class Estimator
 {
 public:
     /** Constructor. */
     Estimator(mt19937_64& gen,
-              std::function<double(StateType)> f,
-              const schemePtr<StateType, VolType, RandomType> scheme,
+              std::function<double(TransitionType)> f,
+              const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
               const MultilevelParameters multilevelParams);
     /** Method to compute the estimator */
     double compute();
@@ -40,9 +40,9 @@ protected:
     /** Generator for the random variable. */
     mt19937_64& m_gen;
     /** Function of the random variable that we simulate: \f$ f(X_T)\f$ */
-    std::function<double(StateType)> m_f;
+    std::function<double(TransitionType)> m_f;
     /** Scheme for simulation.*/
-    schemePtr<StateType, VolType, RandomType> m_scheme;
+    schemePtr<StateType, VolType, RandomType, TransitionType> m_scheme;
     /** Multilevel parameters which define the estimator. */
     MultilevelParameters m_multilevelParams;
 };
@@ -54,11 +54,11 @@ protected:
  * @param scheme Scheme for the simulation of \f$X_t\f$
  * @param multilevelParams Multilevel parameters associated to this estimator.
  */
-template <typename StateType, typename VolType, typename RandomType>
-Estimator<StateType, VolType, RandomType>::Estimator(mt19937_64& gen,
-                     std::function<double(StateType)> f,
-                     const schemePtr<StateType, VolType, RandomType> scheme,
-                     const MultilevelParameters multilevelParams):
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
+Estimator<StateType, VolType, RandomType,TransitionType>::Estimator(mt19937_64& gen,
+                                                                std::function<double(TransitionType)> f,
+                                                                const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
+                                                                const MultilevelParameters multilevelParams):
     m_gen(gen), m_f(f), m_scheme(scheme), m_multilevelParams(multilevelParams)
 {
 }
@@ -66,8 +66,8 @@ Estimator<StateType, VolType, RandomType>::Estimator(mt19937_64& gen,
 /**
  * @return Computed value of the estimator \f$\bar{Y}_{h,\underline{n}}^{N,q}\f$.
  */
-template <typename StateType, typename VolType, typename RandomType>
-double Estimator<StateType, VolType, RandomType>::compute()
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
+double Estimator<StateType, VolType, RandomType, TransitionType>::compute()
 {
     estimator_type estimatorType= m_multilevelParams.getEstimatorType();
 
@@ -82,20 +82,20 @@ double Estimator<StateType, VolType, RandomType>::compute()
     // We first compute the first term by single Monte Carlo simulation
     // This term is the same for both methods
     unsigned int N_0 = ceil(N*q[0]);
-    MonteCarlo<StateType, VolType, RandomType> monteCarlo = MonteCarlo<StateType, VolType, RandomType>(m_gen, m_f, m_scheme, hInverse);
+    MonteCarlo<StateType, VolType, RandomType, TransitionType> monteCarlo = MonteCarlo<StateType, VolType, RandomType, TransitionType>(m_gen, m_f, m_scheme, hInverse);
     sum += monteCarlo(N_0);
 
     for (unsigned int j=1; j<R; ++j){
         unsigned int N_j = ceil(N*q[j]);
 
-        function<double(StateType)> newF;
+        function<double(TransitionType)> newF;
 
         // We switch between the two cases, MC and RR
         // and in the RR case we modify the function by making the product with the weight W[j]
         switch(estimatorType){
         case RR: {
             double W_j = m_multilevelParams.getWeights()[j];
-            newF = [=](StateType x){return W_j*m_f(x);};
+            newF = [=](TransitionType x){return W_j*m_f(x);};
             break;
         }
         case MC:{
@@ -104,7 +104,7 @@ double Estimator<StateType, VolType, RandomType>::compute()
         }
         }
         // We make the Monte Carlo
-        DoubleMonteCarlo<StateType, VolType, RandomType> monteCarlo = DoubleMonteCarlo<StateType, VolType, RandomType>(m_gen, newF, m_scheme, hInverse*n[j-1], hInverse*n[j]);
+        DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType> monteCarlo = DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType>(m_gen, newF, m_scheme, hInverse*n[j-1], hInverse*n[j]);
         sum += monteCarlo(N_j);
     }
 

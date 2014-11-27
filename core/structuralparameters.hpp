@@ -38,20 +38,20 @@ public:
                          const double h);
 
     /** @name Compute parameters functions*/
-    template <typename StateType, typename VolType, typename RandomType>
+    template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
     void computeParameters(mt19937_64& gen,
-                           std::function<double(StateType)> f,
-                           const schemePtr<StateType, VolType, RandomType> scheme,
+                           std::function<double(TransitionType)> f,
+                           const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                            const unsigned int N);
-    template <typename StateType, typename VolType, typename RandomType>
+    template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
     void computeV1(mt19937_64& gen,
-                   std::function<double(StateType)> f,
-                   const schemePtr<StateType, VolType, RandomType> scheme,
+                   std::function<double(TransitionType)> f,
+                   const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                    const unsigned int N);
-    template <typename StateType, typename VolType, typename RandomType>
+    template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
     void computeVarY0(mt19937_64& gen,
-                      std::function<double(StateType)> f,
-                      const schemePtr<StateType, VolType, RandomType> scheme,
+                      std::function<double(TransitionType)> f,
+                      const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                       const unsigned int N);
     void computeTheta();
     void displayParameters();
@@ -109,10 +109,10 @@ private:
  * @param scheme Scheme for the simulation.
  * @param N Number of simulations.
  */
-template <typename StateType, typename VolType, typename RandomType>
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
 void StructuralParameters::computeParameters(mt19937_64& gen,
-                                             std::function<double(StateType)> f,
-                                             const schemePtr<StateType, VolType, RandomType> scheme,
+                                             std::function<double(TransitionType)> f,
+                                             const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                                              const unsigned int N)
 {
     // First we compute the var(Y0) and V1
@@ -138,10 +138,10 @@ void StructuralParameters::computeParameters(mt19937_64& gen,
  * @param scheme Scheme for the simulation.
  * @param N Number of simulations.
  */
-template <typename StateType, typename VolType, typename RandomType>
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
 void StructuralParameters::computeV1(mt19937_64& gen,
-                                     std::function<double(StateType)> f,
-                                     const schemePtr<StateType, VolType, RandomType> scheme,
+                                     std::function<double(TransitionType)> f,
+                                     const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                                      const unsigned int N)
 {
     unsigned int M = 10;
@@ -159,7 +159,7 @@ void StructuralParameters::computeV1(mt19937_64& gen,
     double beta = m_beta;
 
     // We instanciate a double monte carlo
-    DoubleMonteCarlo<StateType, VolType, RandomType> Y(gen, f, scheme, n, M*n);
+    DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType> Y(gen, f, scheme, n, M*n);
     // We make N simulations
     Y(N);
 
@@ -178,10 +178,10 @@ void StructuralParameters::computeV1(mt19937_64& gen,
  * @param scheme Scheme for the simulation.
  * @param N Number of simulations.
  */
-template <typename StateType, typename VolType, typename RandomType>
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
 void StructuralParameters::computeVarY0(mt19937_64& gen,
-                                        std::function<double(StateType)> f,
-                                        const schemePtr<StateType, VolType, RandomType> scheme,
+                                        std::function<double(TransitionType)> f,
+                                        const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                                         const unsigned int N)
 {
     double T = scheme->getModel()->getMaturity();
@@ -196,7 +196,7 @@ void StructuralParameters::computeVarY0(mt19937_64& gen,
     int n = T/m_hBold;
 
     // We instanciate a single Monte Carlo
-    MonteCarlo<StateType, VolType, RandomType> Y(gen, f, scheme, n);
+    MonteCarlo<StateType, VolType, RandomType, TransitionType> Y(gen, f, scheme, n);
     // We make N simulations
     Y(N);
     m_varY0 = Y.var();

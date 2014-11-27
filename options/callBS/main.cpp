@@ -58,7 +58,7 @@ int main() {
 
     // We define the structural parameters
     StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
-    structParam.computeParameters<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd>(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, N);
+    structParam.computeParameters<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd, Eigen::VectorXd>(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, N);
 
     // We compute the multilevel parameters with a tolerance epsilon
     double epsilon = pow(2.0, -1);
@@ -67,8 +67,8 @@ int main() {
     MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
 
     // We compute the estimators
-    Estimator<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd> estimatorMC(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamMC);
-    Estimator<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd> estimatorRR(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamRR);
+    Estimator<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd, Eigen::VectorXd> estimatorMC(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamMC);
+    Estimator<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd, Eigen::VectorXd> estimatorRR(gen, std::function<double(Eigen::VectorXd const &)>(call), eulerScheme, multilevelParamRR);
 
     double estimatorValueMC = estimatorMC.compute();
     double estimatorValueRR = estimatorRR.compute();
