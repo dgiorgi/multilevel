@@ -18,6 +18,9 @@ using namespace std;
 
 int main() {
 
+    typedef double StateType, VolType, RandomType;
+    typedef std::pair<double, double> TransitionType;
+
     // We define the Black and Scholes model
     double x0 = 100;
     double r = 0.;
@@ -52,7 +55,7 @@ int main() {
 
     // We define the structural parameters
     StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
-    structParam.computeParameters<double, double, double,std::pair<double, double>>(gen, std::function<double(std::pair<double, double> const &)>(up_out_call), phiScheme, N);
+    structParam.computeParameters<StateType, VolType, RandomType,TransitionType>(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, N);
 
     // We compute the multilevel parameters with a tolerance epsilon
     double epsilon = pow(2.0, -1);
@@ -61,8 +64,8 @@ int main() {
     MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
 
     // We compute the estimators
-    Estimator<double, double, double, std::pair<double, double>> estimatorMC(gen, std::function<double(std::pair<double, double> const &)>(up_out_call), phiScheme, multilevelParamMC);
-    Estimator<double, double, double, std::pair<double, double>> estimatorRR(gen, std::function<double(std::pair<double, double> const &)>(up_out_call), phiScheme, multilevelParamRR);
+    Estimator<StateType, VolType, RandomType,TransitionType> estimatorMC(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, multilevelParamMC);
+    Estimator<StateType, VolType, RandomType,TransitionType> estimatorRR(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, multilevelParamRR);
 
     double estimatorValueMC = estimatorMC.compute();
     double estimatorValueRR = estimatorRR.compute();
