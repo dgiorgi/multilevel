@@ -3,6 +3,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <Eigen/Dense>
 
 // quelques fonction utiles...
 double cdf_normal(double x);

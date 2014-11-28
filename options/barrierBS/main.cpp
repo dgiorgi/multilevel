@@ -31,7 +31,7 @@ int main() {
     generator gen = generator(seed);
 
     // We define the one dimensional Black and Scholes model
-    blackAndScholesfPtr<double, double, double, double> BS(new BlackAndScholes<double, double, double, double>(r, sigma, x0, T));
+    blackAndScholesfPtr<double, double> BS(new BlackAndScholes<double, double>(r, sigma, x0, T));
     eulerPtr<double, double, double> eulerScheme(new Euler<double, double, double>(BS));
 
     std::function<double(double, double)> myMax = [](double x,double y) {return max(x,y);};

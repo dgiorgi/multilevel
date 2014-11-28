@@ -38,7 +38,7 @@ int main() {
     double T = 5;
 
     //BlackAndScholes<Eigen::VectorXd,Eigen::MatrixXd, Eigen::MatrixXd,Eigen::VectorXd> BS(r, sigma, rho, x0, T);
-    blackAndScholesfPtr<Eigen::VectorXd,Eigen::MatrixXd, Eigen::MatrixXd,Eigen::VectorXd> BS(new BlackAndScholes<Eigen::VectorXd,Eigen::MatrixXd, Eigen::MatrixXd,Eigen::VectorXd>(r, sigma, rho, x0, T));
+    blackAndScholesfPtr<Eigen::VectorXd,Eigen::MatrixXd> BS(new BlackAndScholes<Eigen::VectorXd,Eigen::MatrixXd>(r, sigma, rho, x0, T));
     eulerPtr<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd> eulerScheme(new Euler<Eigen::VectorXd,Eigen::MatrixXd, Eigen::VectorXd>(BS));
 
     auto call = [=](Eigen::VectorXd x) {

@@ -64,23 +64,23 @@ Model<StateType, VolType, RandomType>::Model(const StateType x0, const double tF
  * \f[dX_t = bX_tdt + \sigma X_tdW_t\f]
  * \f[X_0=x_0\f]
  */
-template<typename StateType, typename VolType, typename CorrType, typename RandomType>
-class BlackAndScholes : public Model<StateType, VolType, RandomType>
+template<typename VectorType, typename MatrixType>
+class BlackAndScholes : public Model<VectorType, MatrixType, VectorType>
 {
 public:
     /** Constructor */
     BlackAndScholes(const double b,
-                    const VolType s,
-                    const CorrType rho,
-                    const StateType x0,
+                    const VectorType s,
+                    const MatrixType rho,
+                    const VectorType x0,
                     const double tF);
 
     /** Drift function of the Black and Scholes model: \f$b(t,x)=b*x\f$. */
-    StateType drift(const double t, const StateType x){ return m_b*x; }
+    VectorType drift(const double t, const VectorType x){ return m_b*x; }
     /** Volatility function of the Black and Scholes model: \f$\sigma(t,x)=\sigma*x\f$. */
-    VolType sigma(const double t, const StateType x){ return m_s*x; }
+    MatrixType sigma(const double t, const VectorType x){ return ((m_s.asDiagonal())*x).asDiagonal(); }
     /** Random variable realization */
-    RandomType random(mt19937_64& gen);
+    VectorType random(mt19937_64& gen);
 
     /** @name Getters
      * @{ */
@@ -91,12 +91,12 @@ public:
 protected :
     /** Drift constant */
     double m_b;
-    /** Volatility matrix */
-    VolType m_s;
+    /** Volatility vector */
+    VectorType m_s;
     /** Correlation matrix */
-    CorrType m_rho;
+    MatrixType m_rho;
     /** Cholesky decomposition of correlation matrix */
-    CorrType m_L;
+    MatrixType m_L;
     /** Generic normal distribution. */
     std::normal_distribution<double> m_gaussian;
 };
@@ -106,7 +106,7 @@ protected :
  * @brief Specialization of the BlackAndScholes class, for the double case.
  */
 template<>
-class BlackAndScholes<double, double, double, double> : public Model<double, double, double>
+class BlackAndScholes<double, double> : public Model<double, double, double>
 {
 public:
     /** Constructor */
@@ -146,20 +146,20 @@ protected :
  * @param x0 Starting point.
  * @param tF Maturity.
  */
-template<typename StateType, typename VolType, typename CorrType, typename RandomType>
-BlackAndScholes<StateType, VolType, CorrType, RandomType>::BlackAndScholes(const double b,
-                                                                           const VolType s,
-                                                                           const CorrType rho,
-                                                                           const StateType x0,
+template<typename VectorType, typename MatrixType>
+BlackAndScholes<VectorType, MatrixType>::BlackAndScholes(const double b,
+                                                                           const VectorType s,
+                                                                           const MatrixType rho,
+                                                                           const VectorType x0,
                                                                            const double tF):
-    Model<StateType, VolType, RandomType>(x0, tF), m_b(b), m_s(s), m_rho(rho), m_gaussian(0.0,1.0)
+    Model<VectorType, MatrixType, VectorType>(x0, tF), m_b(b), m_s(s), m_rho(rho), m_gaussian(0.0,1.0)
 {
     // Make the Cholesky decomposition of the correlation matrix
 //    string T = typeid(CorrType).name();
 //    std::size_t found = T.find("Matrix");
 
 //    if (found!=std::string::npos){
-        Eigen::LLT<CorrType> cholesky = m_rho.llt();
+        Eigen::LLT<MatrixType> cholesky = m_rho.llt();
         m_L = cholesky.matrixL();
 //    }
 }
@@ -170,14 +170,14 @@ BlackAndScholes<StateType, VolType, CorrType, RandomType>::BlackAndScholes(const
  * @param gen Random generator
  * @return randomRealization \f$(dW_1, \ldots, dW_p)\f$
  */
-template<typename StateType, typename VolType, typename CorrType, typename RandomType>
-RandomType BlackAndScholes<StateType, VolType, CorrType, RandomType>::random(mt19937_64 &gen)
+template<typename VectorType, typename MatrixType>
+VectorType BlackAndScholes<VectorType, MatrixType>::random(mt19937_64 &gen)
 {
     // Generate n realizations of indipendent gaussian laws
     int size = m_L.rows();
-    RandomType randomRealization(size);
+    VectorType randomRealization(size);
     for (int i=0; i<size; ++i)
-        randomRealization << m_gaussian(gen);
+        randomRealization[i] = m_gaussian(gen);
 
     // Make the product with the matrix L coming from the Cholesky decomposition of the correlation matrix
     randomRealization = m_L*randomRealization;
@@ -234,8 +234,8 @@ template<typename StateType, typename VolType, typename RandomType>
 using modelPtr = shared_ptr<Model<StateType, VolType, RandomType>> ;
 
 // Smart pointer to Black And Scholes Model
-template<typename StateType, typename VolType, typename CorrType, typename RandomType>
-using blackAndScholesfPtr = shared_ptr<BlackAndScholes<StateType, VolType, CorrType, RandomType>> ;
+template<typename VectorType, typename MatrixType>
+using blackAndScholesfPtr = shared_ptr<BlackAndScholes<VectorType, MatrixType>> ;
 
 // Smart pointer to SABR Model
 using sabrPtr = shared_ptr<SABR> ;

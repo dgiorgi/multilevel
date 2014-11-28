@@ -6,7 +6,7 @@ SOURCES += \
     main.cpp
 
 INCLUDEPATH += $$PWD/../../core
-DEPENDPATH += $$PWD/../../coreQMAKE_CXXFLAGS += -pthread -std=c++11
+DEPENDPATH += $$PWD/../../core
 
 INCLUDEPATH += /usr/include/eigen
 

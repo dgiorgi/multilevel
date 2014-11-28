@@ -86,6 +86,8 @@ Euler<StateType, VolType, RandomType>::Euler(const modelPtr<StateType, VolType, 
 template<typename StateType, typename VolType, typename RandomType>
 StateType Euler<StateType, VolType, RandomType>::transition(double t, StateType x, double h, RandomType r)
 {
+    StateType drift = this->m_model->drift(t,x);
+    VolType sigma = this->m_model->sigma(t, x);
     return x + this->m_model->drift(t,x)*h + this->m_model->sigma(t, x)*r;  // on ne passe pas sqrt(h) ici à cause de la double transition
 }
 
