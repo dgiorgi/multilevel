@@ -4,5 +4,6 @@ SUBDIRS += \
     core \
     options/callBS \
     options/barrierBS \
-    options/basketBS
+    options/basketBS \
+    options/lookbackBS
 

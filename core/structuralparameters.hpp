@@ -121,10 +121,6 @@ void StructuralParameters::computeParameters(mt19937_64& gen,
 
     // And then theta
     computeTheta();
-
-    // We display the parameters
-    displayParameters();
-    writeParameters("parameters.txt");
 }
 
 

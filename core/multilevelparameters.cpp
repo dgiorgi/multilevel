@@ -86,11 +86,13 @@ void MultilevelParameters::computeOptimalParameters()
         computeOptimalParametersForM(M);
 
         double tempCost = computeCost();
+
         bestM = tempCost < bestCost ? M : bestM;
         bestCost = min(tempCost, bestCost);
     }
 
     m_M = bestM;
+    m_cost = bestCost;
     computeOptimalParametersForM(bestM);
 }
 
@@ -103,17 +105,20 @@ void MultilevelParameters::computeOrder()
 
     switch (m_type){
     case RR:{
-        double c_tilde = 1;
+        double c_tilde = 1.;
         double H = m_structParam.getHBold();
 
-        m_R = floor(0.5 + log(pow(c_tilde, 1/alpha)*H)/log((double)m_M)
-                    + sqrt(pow(0.5+log(pow(c_tilde, 1/alpha)*H)/log((double)m_M),2) + 2*log(1/m_epsilon)/(alpha*log((double)m_M))));
+        // We round to the nearest integer floor(0.5+R)
+        double R = 0.5 + log(pow(c_tilde, 1/alpha)*H)/log((double)m_M)
+                + sqrt(pow(0.5+log(pow(c_tilde, 1./alpha)*H)/log((double)m_M),2) + 2.*log(1./m_epsilon)/(alpha*log((double)m_M)));
+        m_R = floor(0.5 + R);
         break;
     }
     case MC:{
         double c1 = m_structParam.getC1();
+        double R = 1. + log(fabs(c1)/m_epsilon)/(alpha*log((double)m_M));
 
-        m_R = floor(1 + log(fabs(c1)/m_epsilon)/(alpha*log((double)m_M)));
+        m_R = floor(0.5 + R);
         break;
     }
     }
@@ -132,9 +137,9 @@ void MultilevelParameters::computeBiais()
     switch(m_type){
     case RR:
     {
-        double f1 = pow( 1.0+2*alpha*(double)m_R , 1.0/(2*alpha*(double)m_R) );
+        double f1 = pow( 1.0+2.*alpha*(double)m_R , 1.0/(2.*alpha*(double)m_R) );
         double f2 = pow( m_epsilon , -1.0/(alpha*(double)m_R) );
-        double f3 = pow( (double)m_M, -((double)m_R-1)*0.5 );
+        double f3 = pow( (double)m_M, -((double)m_R-1.)*0.5 );
 
         m_hInverse = ceil(f1*f2*f3);
         break;
@@ -143,7 +148,7 @@ void MultilevelParameters::computeBiais()
     {
         double c1 = m_structParam.getC1();
 
-        double f1 = pow( 1+2*alpha , 1.0/(2*alpha) );
+        double f1 = pow( 1.+2.*alpha , 1.0/(2.*alpha) );
         double f2 = pow( m_epsilon/fabs(c1) , -1.0/(alpha) );
         double f3 = pow( (double)m_M, -((double)m_R-1) );
 
@@ -166,10 +171,10 @@ void MultilevelParameters::computeWeights()
     double alpha = m_structParam.getAlpha();
 
     // First we compute the weight vector as the unique solution of the Vandermonde system
-    vector<double> w;
+    vector<double> w = vector<double>();
 
     for (unsigned int i=0; i<m_R; ++i){
-        double num = pow(-1, (double)m_R-(i+1)) * pow((double)m_n[i], alpha*((double)m_R-1));
+        double num = pow(-1, (double)m_R-(double)(i+1)) * pow((double)m_n[i], alpha*((double)m_R-1.));
         double prodInf = 1;
         for(unsigned int j=0; j<i; ++j)
             prodInf *= pow((double)m_n[i], alpha) - pow((double)m_n[j], alpha);
@@ -305,17 +310,21 @@ double MultilevelParameters::computeCost()
  */
 void MultilevelParameters::displayParameters()
 {
-    cout << "Root M : "         << m_M  << endl;
-    cout << "Estimator type : " << m_type << endl;
+    cout << "Epsilon : " << m_epsilon << endl << endl;
+    if (m_type == 0)
+        cout << "MLMC MULTILEVEL PARAMETERS : " << endl;
+    else
+        cout << "ML2R MULTILEVEL PARAMETERS : " << endl;
     cout << "Order R : "        << m_R << endl;
-    cout << "Biais h : "        << m_h << endl;
+    cout << "Root M : "         << m_M  << endl;
     cout << "Biais inverse h^-1 : " << m_hInverse << endl;
+    cout << "Number of simulations N : " << m_N << endl;
+    cout << "Estimator cost : " << m_cost << endl;
     cout << "Stratification strategy q : (";
     for (unsigned int i=0; i<m_q.size()-1; ++i)
         cout << m_q[i] << ", ";
     cout << m_q[m_q.size()-1] << ")" << endl;
 
-    cout << "Number of simulations N : " << m_N << endl;
     cout << endl;
 }
 
@@ -335,21 +344,12 @@ void MultilevelParameters::writeParameters(const string fileName)
         exit(1);
     }
 
-    switch (m_type){
-    case MC:
-        file_out << "Multilevel parameters for multilevel Monte Carlo estimator" << endl;
-        break;
-    case RR:
-        file_out << "Multilevel parameters for multilevel Richardson-Romberg estimator" << endl;
-        break;
-    }
+    file_out << "Epsilon : "        << m_epsilon << endl << endl;
 
-    file_out << endl;
+    file_out << "MULTILEVEL PARAMETERS :" << endl << endl;
 
-    file_out << "Root M : "         << m_M  << endl;
-    file_out << "Estimator type : " << m_type << endl;
     file_out << "Order R : "        << m_R << endl;
-    file_out << "Biais h : "        << m_h << endl;
+    file_out << "Root M : "         << m_M  << endl;
     file_out << "Biais inverse h^-1 : " << m_hInverse << endl;
     file_out << "Stratification strategy q : (";
     for (unsigned int i=0; i<m_q.size()-1; ++i)
@@ -357,5 +357,8 @@ void MultilevelParameters::writeParameters(const string fileName)
     file_out << m_q[m_q.size()-1] << ")" << endl;
 
     file_out << "Number of simulations N : " << m_N << endl;
+    file_out << "Estimator cost : " << m_cost << endl;
     file_out << endl;
+
+    file_out.close();
 }

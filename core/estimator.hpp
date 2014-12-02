@@ -1,6 +1,8 @@
 #ifndef ESTIMATOR_HPP
 #define ESTIMATOR_HPP
 
+#include <chrono>
+
 #include "multilevelparameters.hpp"
 
 using namespace std;
@@ -35,6 +37,12 @@ public:
               const MultilevelParameters multilevelParams);
     /** Method to compute the estimator */
     double compute();
+    /** Method to compute the L2 error of the estimator */
+    double L2Error(int N, double trueValue);
+    /** Method to display the L2 error, biais and variance */
+    void display();
+    /** Method to write the estimator results in a file */
+    void write(const string fileName);
 
 protected:
     /** Generator for the random variable. */
@@ -45,6 +53,20 @@ protected:
     schemePtr<StateType, VolType, RandomType, TransitionType> m_scheme;
     /** Multilevel parameters which define the estimator. */
     MultilevelParameters m_multilevelParams;
+    /** Sum of estimator values. */
+    double m_sum;
+    /** Empirical variance of each estimator sum. */
+    double m_varSum;
+    /** Empirical biais. */
+    double m_biais;
+    /** Empirical variance. */
+    double m_var;
+    /** L2 error. */
+    double m_L2Error;
+    /** Total number of estimators. */
+    int m_totalL;
+    /** Total time passed in estimator computation. */
+    double m_totalTime;
 };
 
 
@@ -59,7 +81,7 @@ Estimator<StateType, VolType, RandomType,TransitionType>::Estimator(mt19937_64& 
                                                                 std::function<double(TransitionType)> f,
                                                                 const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                                                                 const MultilevelParameters multilevelParams):
-    m_gen(gen), m_f(f), m_scheme(scheme), m_multilevelParams(multilevelParams)
+    m_gen(gen), m_f(f), m_scheme(scheme), m_multilevelParams(multilevelParams), m_sum(0.), m_varSum(0.), m_totalL(0), m_totalTime(0.)
 {
 }
 
@@ -69,6 +91,7 @@ Estimator<StateType, VolType, RandomType,TransitionType>::Estimator(mt19937_64& 
 template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
 double Estimator<StateType, VolType, RandomType, TransitionType>::compute()
 {
+    std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     estimator_type estimatorType= m_multilevelParams.getEstimatorType();
 
     unsigned int R = m_multilevelParams.getOrder();
@@ -82,8 +105,9 @@ double Estimator<StateType, VolType, RandomType, TransitionType>::compute()
     // We first compute the first term by single Monte Carlo simulation
     // This term is the same for both methods
     unsigned int N_0 = ceil(N*q[0]);
-    MonteCarlo<StateType, VolType, RandomType, TransitionType> monteCarlo = MonteCarlo<StateType, VolType, RandomType, TransitionType>(m_gen, m_f, m_scheme, hInverse);
+    MonteCarlo<StateType, VolType, RandomType, TransitionType> monteCarlo(m_gen, m_f, m_scheme, hInverse);
     sum += monteCarlo(N_0);
+    double var = monteCarlo.var();
 
     for (unsigned int j=1; j<R; ++j){
         unsigned int N_j = ceil(N*q[j]);
@@ -104,11 +128,86 @@ double Estimator<StateType, VolType, RandomType, TransitionType>::compute()
         }
         }
         // We make the Monte Carlo
-        DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType> monteCarlo = DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType>(m_gen, newF, m_scheme, hInverse*n[j-1], hInverse*n[j]);
-        sum += monteCarlo(N_j);
+        DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType> doubleMonteCarlo(m_gen, newF, m_scheme, hInverse*n[j-1], hInverse*n[j]);
+        sum += doubleMonteCarlo(N_j);
+        var += doubleMonteCarlo.var();
     }
 
+    m_sum += sum;
+    m_varSum += var;
+
+    std::chrono::steady_clock::time_point  end = std::chrono::steady_clock::now();
+
+    m_totalTime +=  std::chrono::duration_cast<std::chrono::duration<double>>(end-start).count() ;
     return sum;
+}
+
+
+/**
+ * @return Compute empirical biais, variance and L2 error of the estimator \f$\bar{Y}_{h,\underline{n}}^{N,q}\f$.
+ */
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
+double Estimator<StateType, VolType, RandomType, TransitionType>::L2Error(int L, double trueValue)
+{
+    for (int i=0; i<L; ++i)
+        this->compute();
+
+    double N = m_multilevelParams.getSimulationsNumber();
+
+    m_totalL += L;
+
+    m_biais = m_sum/(double)m_totalL - trueValue;
+    m_var = m_varSum/(double)(N*m_totalL);
+    m_L2Error = sqrt(m_biais*m_biais + m_var);
+
+    return m_L2Error;
+}
+
+/**
+ * @return Display empirical biais, variance and L2 error of the estimator \f$\bar{Y}_{h,\underline{n}}^{N,q}\f$.
+ */
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
+void Estimator<StateType, VolType, RandomType, TransitionType>::display()
+{
+    estimator_type estimatorType= m_multilevelParams.getEstimatorType();
+    if (estimatorType == 0)
+        cout << "MLMC ESTIMATOR : " << endl;
+    else
+        cout << "ML2R ESTIMATOR : " << endl;
+    cout << "L2 error : " << m_L2Error << endl;
+    cout << "Empirical biais : " << m_biais << endl;
+    cout << "Empirical variance : " << m_var << endl;
+    cout << "Mean value of estimator : " << m_sum/m_totalL << endl;
+    cout << "Mean time for one estimator : " << m_totalTime/m_totalL << endl << endl;
+}
+
+/**
+ * @brief Method to write the estimator result in a file.
+ */
+template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
+void Estimator<StateType, VolType, RandomType, TransitionType>::write(const string fileName)
+{
+    // Open the file where we want to write the results
+    ofstream file_out(fileName.c_str(), ios::out | ios::binary | ios::app);
+
+    file_out.precision(6);
+
+    if (!file_out)  { // if the opening succeeded
+        cerr << endl << " Write parameters in file error! " << endl;
+        cerr << " Cannot open solution file (" << fileName << ") to write the multilevel parameters." << endl << endl;
+        exit(1);
+    }
+
+    file_out << endl;
+    file_out << "ESTIMATOR : " << endl << endl;
+
+    file_out << "L2 error : " << m_L2Error << endl;
+    file_out << "Empirical biais : " << m_biais << endl;
+    file_out << "Empirical variance : " << m_var << endl << endl;
+    file_out << "Mean value of estimator : " << m_sum/m_totalL << endl;
+    file_out << "Mean time for one estimator : " << m_totalTime/m_totalL << endl;
+    file_out << endl;
+    file_out << "-------------------------------" << endl << endl;
 }
 
 #endif // ESTIMATOR_HPP

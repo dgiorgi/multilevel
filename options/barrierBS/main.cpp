@@ -18,7 +18,7 @@ using namespace std;
 
 int main() {
 
-    typedef double StateType, VolType, RandomType;
+    typedef double VectorType, MatrixType, StateType, VolType, RandomType;
     typedef std::pair<double, double> TransitionType;
 
     // We define the Black and Scholes model
@@ -27,66 +27,75 @@ int main() {
     double sigma = 0.15;
     double K = 100;
     double T = 1;
-    double L = 130;
+    double L = 120;
 
     typedef mt19937_64 generator;
     unsigned int seed = std::chrono::system_clock::now().time_since_epoch().count();
     generator gen = generator(seed);
 
     // We define the one dimensional Black and Scholes model
-    blackAndScholesfPtr<double, double> BS(new BlackAndScholes<double, double>(r, sigma, x0, T));
-    eulerPtr<double, double, double> eulerScheme(new Euler<double, double, double>(BS));
+    blackAndScholesfPtr<VectorType, MatrixType> BS(new BlackAndScholes<VectorType, MatrixType>(r, sigma, x0, T));
+    eulerPtr<StateType, VolType, RandomType> eulerScheme(new Euler<StateType, VolType, RandomType>(BS));
 
     std::function<double(double, double)> myMax = [](double x,double y) {return max(x,y);};
 
-    phiSchemePtr<double,double,double> phiScheme(new PhiScheme<double,double,double>(BS, eulerScheme, myMax) ) ;
+    phiSchemePtr<StateType, VolType, RandomType> phiScheme(new PhiScheme<StateType, VolType, RandomType>(BS, eulerScheme, myMax) ) ;
 
     function<double(std::pair<double, double> const &)> up_out_call =
             [=](std::pair<double, double> const & x) -> double { return (x.second < L && x.first > K) ? exp(-r*T)*(x.first - K): 0; };
-
 
     unsigned N = 1e6; // montecarlo simulations for the structural parameters computation
 
     double alpha = 0.5;
     double beta = 0.5;
     double c1 = 1;
-    //    double H = min(1.,T);
     double H = T;
 
     // We define the structural parameters
     StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
     structParam.computeParameters<StateType, VolType, RandomType,TransitionType>(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, N);
 
+    string filenameMLMC = "MLMC_barrierBS.txt";
+    string filenameML2R = "ML2R_barrierBS.txt";
+    structParam.displayParameters();
+    structParam.writeParameters(filenameMLMC);
+    structParam.writeParameters(filenameML2R);
+
     // We compute the multilevel parameters with a tolerance epsilon
-    double epsilon = pow(2.0, -1);
+    for (int i=1; i<9; ++i){
+        double epsilon = pow(2.0, -i);
 
-    MultilevelParameters multilevelParamMC = MultilevelParameters(epsilon, structParam, MC);
-    MultilevelParameters multilevelParamRR = MultilevelParameters(epsilon, structParam, RR);
+        double true_value = 1.855225;
 
-    // We compute the estimators
-    Estimator<StateType, VolType, RandomType,TransitionType> estimatorMC(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, multilevelParamMC);
-    Estimator<StateType, VolType, RandomType,TransitionType> estimatorRR(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, multilevelParamRR);
+        MultilevelParameters multilevelParam2R = MultilevelParameters(epsilon, structParam, RR);
+        MultilevelParameters multilevelParamMC = MultilevelParameters(epsilon, structParam, MC);
 
-    double estimatorValueMC = estimatorMC.compute();
-    double estimatorValueRR = estimatorRR.compute();
+        multilevelParam2R.writeParameters(filenameML2R);
+        multilevelParamMC.writeParameters(filenameMLMC);
 
-    // We display and write the parameters in a file
-    multilevelParamMC.displayParameters();
-    multilevelParamRR.displayParameters();
-    multilevelParamMC.writeParameters("parameters.txt");
-    multilevelParamRR.writeParameters("parameters.txt");
+        // We compute the estimators
+        Estimator<StateType, VolType, RandomType,TransitionType> estimator2R(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, multilevelParam2R);
+        Estimator<StateType, VolType, RandomType,TransitionType> estimatorMC(gen, std::function<double(TransitionType const &)>(up_out_call), phiScheme, multilevelParamMC);
 
-    cout << "Estimator value MC " << estimatorValueMC << endl;
-    cout << "Estimator value RR " << estimatorValueRR << endl;
+        estimator2R.L2Error(256, true_value);
+        estimatorMC.L2Error(256, true_value);
 
-    double true_value = 3.869693;
+        estimator2R.write(filenameML2R);
+        estimatorMC.write(filenameMLMC);
 
-    cout << "True value " << 3.869693 << endl;
+        // We display and write the parameters in a file
+        multilevelParamMC.displayParameters();
+        estimatorMC.display();
+        cout << "True value  " << true_value << endl << endl;
+        multilevelParam2R.displayParameters();
+        estimator2R.display();
+        cout << "True value " << true_value << endl << endl;
+    }
 
-    vector<double> result = vector<double>();
-    result.push_back(estimatorValueMC);
-    result.push_back(estimatorValueRR);
-    result.push_back(true_value);
+//    vector<double> result = vector<double>();
+//    result.push_back(estimatorValueMC);
+//    result.push_back(estimatorValueRR);
+//    result.push_back(true_value);
 
     return 0;
 }

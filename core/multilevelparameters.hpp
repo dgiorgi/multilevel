@@ -112,6 +112,8 @@ protected:
     std::vector<double> m_q;
     /** Number of simulations: \f$N\f$. */
     double m_N;
+    /** Cost of the estimator */
+    double m_cost;
     /** Weights of the allocation matrix (computed only in the RR case).*/
     std::vector<double> m_W;
     /** Precision of the estimator: \f$\varepsilon\f$.*/

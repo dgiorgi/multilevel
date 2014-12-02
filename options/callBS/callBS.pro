@@ -1,4 +1,5 @@
-QMAKE_CXXFLAGS += -pthread -std=c++11
+QMAKE_CXXFLAGS += -fopenmp -Wall -pthread -std=c++11
+QMAKE_LFLAGS *= -fopenmp
 
 LIBS += -L$$OUT_PWD/../../core/ -lcore
 

@@ -86,8 +86,6 @@ Euler<StateType, VolType, RandomType>::Euler(const modelPtr<StateType, VolType, 
 template<typename StateType, typename VolType, typename RandomType>
 StateType Euler<StateType, VolType, RandomType>::transition(double t, StateType x, double h, RandomType r)
 {
-    StateType drift = this->m_model->drift(t,x);
-    VolType sigma = this->m_model->sigma(t, x);
     return x + this->m_model->drift(t,x)*h + this->m_model->sigma(t, x)*r;  // on ne passe pas sqrt(h) ici à cause de la double transition
 }
 
@@ -111,8 +109,8 @@ pair<StateType, StateType> Euler<StateType, VolType, RandomType>::pairTransition
     StateType X_0 = pairProcess.first;
     StateType X_n = pairProcess.second;
 
-    RandomType randomRealization;
-    RandomType randomRealizationSum;
+    RandomType randomRealization = RandomType();
+    RandomType randomRealizationSum = RandomType();
 
     // We make n transitions on the finest process, keeping memory of the random realizations
     for (unsigned int i=0; i<n; ++i){
@@ -287,8 +285,8 @@ pair<pair<StateType,StateType>, pair<StateType,StateType>> PhiScheme<StateType, 
     pair<StateType,StateType> X_phiX_0 = pairProcess.first;
     pair<StateType,StateType> X_phiX_n = pairProcess.second;
 
-    RandomType randomRealization;
-    RandomType randomRealizationSum;
+    RandomType randomRealization = RandomType();
+    RandomType randomRealizationSum = RandomType();
 
     // We make n transitions on the finest process, keeping memory of the random realizations
     for (unsigned int i=0; i<n; ++i){

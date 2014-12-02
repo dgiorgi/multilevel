@@ -59,7 +59,7 @@ void StructuralParameters::writeParameters(const string fileName)
     }
 
 
-    file_out << "Structural parameters for multilevel estimator" << endl;
+    file_out << "STRUCTURAL PARAMETERS : " << endl;
 
     file_out << endl;
 
@@ -72,6 +72,7 @@ void StructuralParameters::writeParameters(const string fileName)
     file_out << "theta: "       << m_theta  << endl;
 
     file_out << endl;
+    file_out << "-------------------------------" << endl << endl;
 
     file_out.close();
 }

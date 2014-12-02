@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <math.h>
+#include <omp.h>
 
 #include "model.hpp"
 #include "scheme.hpp"
@@ -202,6 +203,8 @@ double DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType>::operato
 
     // We make N calls to the simulator,
     // we make the sum and the sum of squares and add them to the previously computed ones.
+
+//#pragma omp parallel for       //making compile errors
     for (unsigned int i=0; i< N; ++i) {
         pair<TransitionType, TransitionType> x = m_scheme->doubleSimulation(m_gen, m_modelSize1, m_modelSize2 );
         double diff = m_f(x.second) - m_f(x.first) ;
