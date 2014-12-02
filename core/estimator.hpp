@@ -107,7 +107,7 @@ double Estimator<StateType, VolType, RandomType, TransitionType>::compute()
     unsigned int N_0 = ceil(N*q[0]);
     MonteCarlo<StateType, VolType, RandomType, TransitionType> monteCarlo(m_gen, m_f, m_scheme, hInverse);
     sum += monteCarlo(N_0);
-    double var = monteCarlo.var();
+    double var = monteCarlo.var()/(double)N_0;
 
     for (unsigned int j=1; j<R; ++j){
         unsigned int N_j = ceil(N*q[j]);
@@ -130,7 +130,7 @@ double Estimator<StateType, VolType, RandomType, TransitionType>::compute()
         // We make the Monte Carlo
         DoubleMonteCarlo<StateType, VolType, RandomType, TransitionType> doubleMonteCarlo(m_gen, newF, m_scheme, hInverse*n[j-1], hInverse*n[j]);
         sum += doubleMonteCarlo(N_j);
-        var += doubleMonteCarlo.var();
+        var += doubleMonteCarlo.var()/(double)N_j;
     }
 
     m_sum += sum;
@@ -157,7 +157,7 @@ double Estimator<StateType, VolType, RandomType, TransitionType>::L2Error(int L,
     m_totalL += L;
 
     m_biais = m_sum/(double)m_totalL - trueValue;
-    m_var = m_varSum/(double)(N*m_totalL);
+    m_var = m_varSum/(double)(m_totalL);
     m_L2Error = sqrt(m_biais*m_biais + m_var);
 
     return m_L2Error;
