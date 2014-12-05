@@ -21,22 +21,22 @@ enum estimator_type { MC, RR};
 class Refiners {
 public:
     /** Constructor.*/
-    Refiners(unsigned int R = 2, unsigned int M = 2) : m_M(M), m_data(R) {
+    Refiners(int R = 2, int M = 2) : m_M(M), m_data(R) {
         m_data[0] = 1;
-        for (unsigned int i = 1; i < R; ++i)
+        for (int i = 1; i < R; ++i)
             m_data[i] = m_data[i-1] * m_M;
     }
     /** Operator []. */
-    unsigned int operator[](unsigned int i) const { return m_data[i]; }
+    int operator[](int i) const { return m_data[i]; }
     /** Root of the refiner getter. */
-    unsigned int getM() const { return m_M; }
+    int getM() const { return m_M; }
     /** Clean method */
     void clear();
 private:
     /** Root of the refiner. */
-    unsigned int m_M;
+    int m_M;
     /** List of refiners in ascending order. */
-    std::vector<unsigned int> m_data;
+    std::vector<int> m_data;
 };
 
 /**
@@ -50,15 +50,19 @@ class MultilevelParameters
 {
 public:
     /** Constructor */
-    MultilevelParameters(const double epsilon,
-                         const StructuralParameters& structParam,
-                         const estimator_type type);
+    MultilevelParameters(double epsilon,
+                         StructuralParameters& structParam,
+                         estimator_type type,
+                         int M = -1,
+                         int R = -1,
+                         double h = -1,
+                         double N = -1);
 
     /** @name Methods to compute the parameters
      * @{
      */
     void initialize();
-    void computeOptimalParametersForM(const unsigned M);
+    void computeOptimalParametersForM(const int M);
     void computeOptimalParameters();
     void computeOrder();
     void computeBiais();
@@ -76,17 +80,17 @@ public:
      * @{
      */
     /** Root \f$M\f$ getter. */
-    unsigned int getRoot()const {return m_M;}
+    int getRoot()const {return m_M;}
     /** Order \f$R\f$ getter. */
-    unsigned int getOrder() const {return m_R;}
+    int getOrder() const {return m_R;}
     /** Biais \f$h\f$ getter. */
     double getBiais() const {return m_h;}
     /** Inverse of biais \f$h\f$ getter. */
-    unsigned int getBiaisInverse() const {return m_hInverse;}
+    int getBiaisInverse() const {return m_hInverse;}
     /** Stratification \f$q=(q_1, \ldots, q_R)\f$ getter. */
     std::vector<double> getStratification() const {return m_q;}
-    /** Total number of simulations \f$N\f$ getter. */
-    double getSimulationsNumber() const {return m_N;}
+    /** Estimator size \f$N\f$ getter. */
+    double getEstimatorSize() const {return m_N;}
     /** Allocation matrix weights \f$W_i\f$ getter. */
     std::vector<double> getWeights() const {return m_W;}
     /** Precision \f$\varepsilon\f$ getter. */
@@ -101,13 +105,13 @@ public:
 
 protected:
     /** Root: \f$M\f$. */
-    unsigned int m_M;
+    int m_M;
     /** Order of the estimator: \f$R\f$. */
-    unsigned int m_R;
+    int m_R;
     /** Biais parameter: \f$h\f$. */
     double m_h;
     /** Inverse of biais parameter: \f$h^{-1}\f$. */
-    unsigned int m_hInverse;
+    int m_hInverse;
     /** Stratification strategy: \f$q=(q_1, \ldots, q_R)\f$ with \f$q_i>0\f$ and \f$\sum_jq_j=1\f$. */
     std::vector<double> m_q;
     /** Number of simulations: \f$N\f$. */
@@ -124,8 +128,20 @@ protected:
     StructuralParameters m_structParam;
     /** Type of multilevel estimator, can be Richardson-Romberg (RR) or Monte Carlo (MC). */
     estimator_type m_type; // can be RR or MC
-    /** Flag for computed parameters */
-    bool m_parametersComputationDone;
+
+    /** @name Flags
+     * @{ */
+    /** Given root \f$M\f$ */
+    bool m_flagGivenRoot;
+    /** Given order \f$R\f$ */
+    bool m_flagGivenOrder;
+    /** Given biais \f$h\f$ */
+    bool m_flagGivenBiais;
+    /** Given estimator size \f$N\f$ */
+    bool m_flagGivenEstimatorSize;
+    /** Computed parameters */
+    bool m_flagDoneComputation;
+    /** @} */
 };
 
 #endif // MULTILEVELPARAMETERS_HPP

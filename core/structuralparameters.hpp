@@ -37,6 +37,19 @@ public:
                          const double c1,
                          const double h);
 
+    StructuralParameters(const double alpha,
+                         const double beta,
+                         const double c1,
+                         const double h,
+                         const double varY0,
+                         const double V1);
+
+    StructuralParameters(const double alpha,
+                         const double beta,
+                         const double c1,
+                         const double h,
+                         const double varY0);
+
     /** @name Compute parameters functions*/
     template <typename StateType, typename VolType, typename RandomType, typename TransitionType>
     void computeParameters(mt19937_64& gen,
@@ -97,6 +110,14 @@ private:
     /** \f$\vartheta\f$ */
     double m_theta;
     /** @} */
+
+    /** @name Flags for weak and strong coefficients
+     * @{ */
+    /** Given \f$V_1\f$ */
+    bool m_flagDoneV1;
+    /** Given \f$var(Y_0)\f$ */
+    bool m_flagDoneVarY0;
+    /** @} */
 };
 
 
@@ -115,9 +136,11 @@ void StructuralParameters::computeParameters(mt19937_64& gen,
                                              const schemePtr<StateType, VolType, RandomType, TransitionType> scheme,
                                              const unsigned int N)
 {
-    // First we compute the var(Y0) and V1
-    computeVarY0(gen, f, scheme, N);
-    computeV1(gen, f, scheme, N);
+    // First we compute the var(Y0) and V1, if they were not given
+    if (!m_flagDoneVarY0)
+        computeVarY0(gen, f, scheme, N);
+    if(!m_flagDoneV1)
+        computeV1(gen, f, scheme, N);
 
     // And then theta
     computeTheta();
@@ -162,6 +185,7 @@ void StructuralParameters::computeV1(mt19937_64& gen,
     double L2 = Y.meanOfSquares();
 
     m_V1 = pow(1.0+pow((double)M, -beta*0.5), -2) * pow(m_hBold,-beta) * L2;
+    m_flagDoneV1 = true;
 }
 
 /**
@@ -196,6 +220,7 @@ void StructuralParameters::computeVarY0(mt19937_64& gen,
     // We make N simulations
     Y(N);
     m_varY0 = Y.var();
+    m_flagDoneVarY0 = true;
 }
 
 #endif // STRUCTURALPARAMETERS_HPP

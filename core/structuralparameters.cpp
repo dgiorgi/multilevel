@@ -14,9 +14,44 @@ StructuralParameters::StructuralParameters(const double alpha,
                                            const double beta,
                                            const double c1,
                                            const double h):
-    m_alpha(alpha), m_beta(beta), m_c1(c1), m_hBold(h)
+    m_alpha(alpha), m_beta(beta), m_c1(c1), m_hBold(h),  m_flagDoneVarY0(false), m_flagDoneV1(false)
 {}
 
+/**
+ * @brief Constructor.
+ *
+ * @param alpha
+ * @param beta
+ * @param c1
+ * @param h
+ * @param varY0
+ */
+StructuralParameters::StructuralParameters(const double alpha,
+                                           const double beta,
+                                           const double c1,
+                                           const double h,
+                                           const double varY0):
+    m_alpha(alpha), m_beta(beta), m_c1(c1), m_hBold(h), m_varY0(varY0), m_flagDoneVarY0(true), m_flagDoneV1(false)
+{}
+
+/**
+ * @brief Constructor.
+ *
+ * @param alpha
+ * @param beta
+ * @param c1
+ * @param h
+ * @param varY0
+ * @param V1
+ */
+StructuralParameters::StructuralParameters(const double alpha,
+                                           const double beta,
+                                           const double c1,
+                                           const double h,
+                                           const double varY0,
+                                           const double V1):
+    m_alpha(alpha), m_beta(beta), m_c1(c1), m_hBold(h), m_varY0(varY0), m_V1(V1), m_flagDoneVarY0(true), m_flagDoneV1(true)
+{}
 
 /**
  * @brief Method to compute \f$\theta = \sqrt{\frac{V_1}{var(Y_0)}}\f$.

@@ -15,58 +15,48 @@ void Refiners::clear()
  * @param epsilon Precision.
  * @param structParam Structural parameters.
  * @param type Estimator type, can be MC or RR.
+ * @param M Root.
+ * @param R Order.
+ * @param h Biais.
+ * @param N Estimator size.
  */
-MultilevelParameters::MultilevelParameters(const double epsilon,
-                                           const StructuralParameters& structParam,
-                                           const estimator_type type):
-    m_epsilon(epsilon), m_structParam(structParam), m_type(type), m_parametersComputationDone(false)
+MultilevelParameters::MultilevelParameters(double epsilon,
+                                           StructuralParameters& structParam,
+                                           estimator_type type,
+                                           int M,
+                                           int R,
+                                           double h,
+                                           double N):
+    m_epsilon(epsilon), m_structParam(structParam), m_type(type), m_M(M),  m_R(R), m_h(h), m_N(N), m_flagDoneComputation(false)
 {
+    if (M == -1)
+        m_flagGivenRoot = false;
+    else
+        m_flagGivenRoot = true;
+    if (R == -1)
+        m_flagGivenOrder = false;
+    else
+        m_flagGivenOrder = true;
+    if (fabs(h+1) < 1e-5)
+        m_flagGivenBiais = false;
+    else
+        m_flagGivenBiais = true;
+    if (fabs(N+1) < 1e-5)
+        m_flagGivenEstimatorSize = false;
+    else
+        m_flagGivenEstimatorSize = true;
+
     computeOptimalParameters();
 }
 
 void MultilevelParameters::initialize()
 {
-    m_parametersComputationDone = false;
-    m_R = 2;
+    m_flagDoneComputation = false;
+
     m_W.clear();
     m_n.clear();
     m_q.clear();
-    m_N = 0;
-    m_h = 1;
-    m_hInverse = 1;
 }
-
-/**
- * @brief Generic method to compute all the optimal parameters.
- *
- * This computes the optimal parameters \f$R, h, q, N\f$ for a given \f$M\f$.
- * It computes also the refiners and (if the estimator type is RR)
- * the weights of the allocation matrix.
- */
-void MultilevelParameters::computeOptimalParametersForM(const unsigned M)
-{
-    m_M = M;
-
-    initialize();
-
-    // First we compute the order R
-    computeOrder();
-    // Once we have R, we can build the refiners
-    m_n = Refiners(m_R,m_M);
-    // We compute the biais h
-    computeBiais();
-    // If it's a Richardson-Romberg estimator we compute the weights of the allocation matrix
-    if (m_type == RR){
-        computeWeights();
-    }
-    // We compute the stratification
-    computeStratification();
-    // We compute the total number of simulations
-    computeN();
-
-    m_parametersComputationDone = true;
-}
-
 
 /**
  * @brief Generic method to compute all the optimal parameters.
@@ -78,23 +68,71 @@ void MultilevelParameters::computeOptimalParametersForM(const unsigned M)
  */
 void MultilevelParameters::computeOptimalParameters()
 {
-    double bestCost = MY_INF;
-    unsigned bestM = 2;
+    if (!m_flagGivenRoot){
+        double bestCost = MY_INF;
+        int bestM = 2;
 
-    for (unsigned M=2; M<10; ++M){
+        for (int M=2; M<10; ++M){
 
-        computeOptimalParametersForM(M);
+            computeOptimalParametersForM(M);
 
-        double tempCost = computeCost();
+            double tempCost = computeCost();
 
-        bestM = tempCost < bestCost ? M : bestM;
-        bestCost = min(tempCost, bestCost);
+            bestM = tempCost < bestCost ? M : bestM;
+            bestCost = min(tempCost, bestCost);
+        }
+
+        m_M = bestM;
+        m_cost = bestCost;
+        computeOptimalParametersForM(bestM);
+    }
+    else{
+        computeOptimalParametersForM(m_M);
+        computeCost();
+    }
+}
+
+/**
+ * @brief Generic method to compute all the optimal parameters.
+ *
+ * This computes the optimal parameters \f$R, h, q, N\f$ for a given \f$M\f$.
+ * It computes also the refiners and (if the estimator type is RR)
+ * the weights of the allocation matrix.
+ */
+void MultilevelParameters::computeOptimalParametersForM(const int M)
+{
+    m_M = M;
+
+    initialize();
+
+    // First we compute the order R
+    if (!m_flagGivenOrder)
+        computeOrder();
+
+    // Once we have R, we can build the refiners
+    m_n = Refiners(m_R,m_M);
+
+    // We compute the biais h
+    if (!m_flagGivenBiais)
+        computeBiais();
+    else
+        m_hInverse = 1./m_h;
+
+    // If it's a Richardson-Romberg estimator we compute the weights of the allocation matrix
+    if (m_type == RR){
+        computeWeights();
     }
 
-    m_M = bestM;
-    m_cost = bestCost;
-    computeOptimalParametersForM(bestM);
+    // We compute the stratification
+    computeStratification();
+
+    // We compute the estimator size
+    if (!m_flagGivenEstimatorSize)
+        computeN();
+
+    m_flagDoneComputation = true;
 }
+
 
 /**
  * @brief Method to compute the order \f$R\f$.
@@ -111,14 +149,14 @@ void MultilevelParameters::computeOrder()
         // We round to the nearest integer floor(0.5+R)
         double R = 0.5 + log(pow(c_tilde, 1/alpha)*H)/log((double)m_M)
                 + sqrt(pow(0.5+log(pow(c_tilde, 1./alpha)*H)/log((double)m_M),2) + 2.*log(1./m_epsilon)/(alpha*log((double)m_M)));
-        m_R = floor(0.5 + R);
+        m_R = ceil(R); //floor(0.5 + R);
         break;
     }
     case MC:{
         double c1 = m_structParam.getC1();
         double R = 1. + log(fabs(c1)/m_epsilon)/(alpha*log((double)m_M));
 
-        m_R = floor(0.5 + R);
+        m_R = ceil(R); //floor(0.5 + R);
         break;
     }
     }
@@ -173,13 +211,13 @@ void MultilevelParameters::computeWeights()
     // First we compute the weight vector as the unique solution of the Vandermonde system
     vector<double> w = vector<double>();
 
-    for (unsigned int i=0; i<m_R; ++i){
+    for (int i=0; i<m_R; ++i){
         double num = pow(-1, (double)m_R-(double)(i+1)) * pow((double)m_n[i], alpha*((double)m_R-1.));
         double prodInf = 1;
-        for(unsigned int j=0; j<i; ++j)
+        for(int j=0; j<i; ++j)
             prodInf *= pow((double)m_n[i], alpha) - pow((double)m_n[j], alpha);
         double prodSup = 1;
-        for(unsigned j=i+1; j<m_R; ++j)
+        for(int j=i+1; j<m_R; ++j)
             prodSup *= pow((double)m_n[j], alpha) - pow((double)m_n[i], alpha);
 
         w.push_back(num / (prodInf*prodSup));
@@ -188,9 +226,9 @@ void MultilevelParameters::computeWeights()
     // Then we compute the weights of the allocation matrix as partial sums of the weight
     // vector elements.
     m_W.push_back(1.0);
-    for (unsigned int j=1; j<m_R; ++j){
+    for (int j=1; j<m_R; ++j){
         double sum = 0.0;
-        for (unsigned int k=j; k<m_R; ++k){
+        for (int k=j; k<m_R; ++k){
             sum += w[k];
         }
         m_W.push_back(sum);
@@ -208,15 +246,15 @@ void MultilevelParameters::computeStratification()
     double theta = m_structParam.getTheta();
     double beta = m_structParam.getBeta();
 
-    double num;
-    double denum;
+    double num = 0.;
+    double denum = 0.;
 
     // First we compute the unnormalized elements
-    vector<double> temp_q;
+    vector<double> temp_q = vector<double>();
 
     temp_q.push_back(1 + theta*pow(m_h, 0.5*beta));
 
-    for (unsigned int j=1; j<m_R; ++j){
+    for (int j=1; j<m_R; ++j){
         num = pow((double)m_n[j-1], -0.5*beta) + pow((double)m_n[j], -0.5*beta);
         denum = sqrt(m_n[j-1] + m_n[j]);
 
@@ -228,15 +266,15 @@ void MultilevelParameters::computeStratification()
 
     // Then we normalize
     double sum = 0;
-    for (unsigned int j=0; j<m_R; ++j)
+    for (int j=0; j<m_R; ++j)
         sum += temp_q[j];
 
-    for (unsigned int j=0; j<m_R; ++j)
+    for (int j=0; j<m_R; ++j)
         m_q.push_back(temp_q[j]/sum);
 }
 
 /**
- * @brief Method to compute the total number of simulations \f$N\f$.
+ * @brief Method to compute the estimator size \f$N\f$.
  */
 void MultilevelParameters::computeN()
 {
@@ -254,7 +292,7 @@ void MultilevelParameters::computeN()
         value *= m_W[0];
     sum += value;
 
-    for (unsigned int j=1; j<m_R; ++j){
+    for (int j=1; j<m_R; ++j){
         value = (pow((double)m_n[j-1], -0.5*beta) + pow((double)m_n[j],-0.5*beta)) * sqrt((double)m_n[j-1]+(double)m_n[j]);
         if (m_type == RR)
             value *= m_W[j];
@@ -265,12 +303,12 @@ void MultilevelParameters::computeN()
 
     sum = 0;
     sum += m_q[0]*m_n[0];
-    for (unsigned int j=1; j<m_R; ++j)
+    for (int j=1; j<m_R; ++j)
         sum += m_q[j]*(m_n[j-1]+m_n[j]);
 
     double denum = pow(m_epsilon,2)*sum;
 
-    double coeff;
+    double coeff = 0;
     switch (m_type){
     case MC:
         coeff = (1. + 0.5/alpha);
@@ -289,14 +327,14 @@ void MultilevelParameters::computeN()
  */
 double MultilevelParameters::computeCost()
 {
-    if (!m_parametersComputationDone){
+    if (!m_flagDoneComputation){
         cerr << "Cannot compute the computation cost before computing the multilevel parameters." << endl;
         cerr << "Please be sure you computed the multilevel parameters first." << endl;
         exit(1);
     }
 
     double sum = m_q[0]*m_n[0];
-    for (unsigned j=1; j<m_R; ++j)
+    for (int j=1; j<m_R; ++j)
         sum += m_q[j]*(m_n[j-1]+m_n[j]);
 
     sum /= m_h;
@@ -321,7 +359,7 @@ void MultilevelParameters::displayParameters()
     cout << "Number of simulations N : " << m_N << endl;
     cout << "Estimator cost : " << m_cost << endl;
     cout << "Stratification strategy q : (";
-    for (unsigned int i=0; i<m_q.size()-1; ++i)
+    for (int i=0; i<m_q.size()-1; ++i)
         cout << m_q[i] << ", ";
     cout << m_q[m_q.size()-1] << ")" << endl;
 
@@ -352,7 +390,7 @@ void MultilevelParameters::writeParameters(const string fileName)
     file_out << "# Root M : "         << m_M  << endl;
     file_out << "# Biais inverse h^-1 : " << m_hInverse << endl;
     file_out << "# Stratification strategy q : (";
-    for (unsigned int i=0; i<m_q.size()-1; ++i)
+    for (int i=0; i<m_q.size()-1; ++i)
         file_out << m_q[i] << ", ";
     file_out << m_q[m_q.size()-1] << ")" << endl;
 

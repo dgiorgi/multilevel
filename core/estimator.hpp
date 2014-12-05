@@ -94,23 +94,23 @@ double Estimator<StateType, VolType, RandomType, TransitionType>::compute()
     std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
     estimator_type estimatorType= m_multilevelParams.getEstimatorType();
 
-    unsigned int R = m_multilevelParams.getOrder();
-    double N = m_multilevelParams.getSimulationsNumber();
+    int R = m_multilevelParams.getOrder();
+    double N = m_multilevelParams.getEstimatorSize();
     vector<double> q = m_multilevelParams.getStratification();
     Refiners n = m_multilevelParams.getRefiners();
-    unsigned int hInverse = m_multilevelParams.getBiaisInverse();
+    int hInverse = m_multilevelParams.getBiaisInverse();
 
     double sum = 0.0;
 
     // We first compute the first term by single Monte Carlo simulation
     // This term is the same for both methods
-    unsigned int N_0 = ceil(N*q[0]);
+    int N_0 = ceil(N*q[0]);
     MonteCarlo<StateType, VolType, RandomType, TransitionType> monteCarlo(m_gen, m_f, m_scheme, hInverse);
     sum += monteCarlo(N_0);
     double var = monteCarlo.var()/(double)N_0;
 
-    for (unsigned int j=1; j<R; ++j){
-        unsigned int N_j = ceil(N*q[j]);
+    for (int j=1; j<R; ++j){
+        int N_j = ceil(N*q[j]);
 
         function<double(TransitionType)> newF;
 
@@ -151,8 +151,6 @@ double Estimator<StateType, VolType, RandomType, TransitionType>::L2Error(int L,
 {
     for (int i=0; i<L; ++i)
         this->compute();
-
-    double N = m_multilevelParams.getSimulationsNumber();
 
     m_totalL += L;
 

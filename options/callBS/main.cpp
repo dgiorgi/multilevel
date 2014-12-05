@@ -41,11 +41,11 @@ int main() {
 
     double alpha = 1;
     double beta = 1;
-    double c_tilde = 1;
+    double c1 = 1;
     double H = T;
 
     // We define the structural parameters
-    StructuralParameters structParam = StructuralParameters(alpha,beta,c_tilde,H);
+    StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
     structParam.computeParameters<StateType, VolType, RandomType, TransitionType>(gen, std::function<double(TransitionType const &)>(call), eulerScheme, N);
 
     string filenameMLMC = "MLMC_callBS.txt";
@@ -55,7 +55,7 @@ int main() {
     structParam.writeParameters(filenameML2R);
 
     // We compute the multilevel parameters with a tolerance epsilon
-    for (int i=1; i<9; ++i){
+    for (int i=1; i<2; ++i){
         double epsilon = pow(2.0, -i);
 
         double callBS = call_black_scholes(x0, K, r, sigma, T);
