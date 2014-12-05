@@ -198,7 +198,6 @@ void Estimator<StateType, VolType, RandomType, TransitionType>::write(const stri
         exit(1);
     }
 
-    file_out << endl;
     file_out << "ESTIMATOR : " << endl << endl;
 
     file_out << "L2 error : " << m_L2Error << endl;
@@ -207,6 +206,9 @@ void Estimator<StateType, VolType, RandomType, TransitionType>::write(const stri
     file_out << "Mean value of estimator : " << m_sum/m_totalL << endl;
     file_out << "Mean time for one estimator : " << m_totalTime/m_totalL << endl;
     file_out << endl;
+
+    file_out << "Epsilon \t L2 error \t Time \t Biais \t Var " << endl;
+    file_out << m_multilevelParams.getPrecision() << "\t" <<  m_L2Error << "\t" <<  m_totalTime/m_totalL << "\t" << m_biais << "\t" << m_var << endl;
     file_out << "-------------------------------" << endl << endl;
 }
 

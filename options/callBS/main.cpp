@@ -22,9 +22,9 @@ int main() {
 
     // We define the Black and Scholes model
     double x0 = 100;
-    double r=0.05;
-    double sigma = 0.5;
-    double K = 100;
+    double r=0.06;
+    double sigma = 0.4;
+    double K = 80;
     double T = 1;
 
     typedef mt19937_64 generator;
@@ -41,13 +41,11 @@ int main() {
 
     double alpha = 1;
     double beta = 1;
-    double c1 = 1;
-    //    double H = min(1.,T);
+    double c_tilde = 1;
     double H = T;
-//    double H = 1.;
 
     // We define the structural parameters
-    StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
+    StructuralParameters structParam = StructuralParameters(alpha,beta,c_tilde,H);
     structParam.computeParameters<StateType, VolType, RandomType, TransitionType>(gen, std::function<double(TransitionType const &)>(call), eulerScheme, N);
 
     string filenameMLMC = "MLMC_callBS.txt";

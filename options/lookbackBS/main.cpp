@@ -51,15 +51,15 @@ int main() {
 
     double alpha = 0.5;
     double beta = 1;
-    double c1 = 1;
+    double c_tilde = 1;
     double H = T;
 
     // We define the structural parameters  
-    StructuralParameters structParam = StructuralParameters(alpha,beta,c1,H);
+    StructuralParameters structParam = StructuralParameters(alpha,beta,c_tilde,H);
     structParam.computeParameters<StateType, VolType, RandomType,TransitionType>(gen, std::function<double(TransitionType const &)>(lookback_call), phiScheme, N);
 
-    string filenameMLMC = "MLMC_callBS.txt";
-    string filenameML2R = "ML2R_callBS.txt";
+    string filenameMLMC = "MLMC_lookbackBS.txt";
+    string filenameML2R = "ML2R_lookbackBS.txt";
     structParam.displayParameters();
     structParam.writeParameters(filenameMLMC);
     structParam.writeParameters(filenameML2R);

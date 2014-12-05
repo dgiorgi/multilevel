@@ -59,20 +59,20 @@ void StructuralParameters::writeParameters(const string fileName)
     }
 
 
-    file_out << "STRUCTURAL PARAMETERS : " << endl;
+    file_out << "# STRUCTURAL PARAMETERS : " << endl;
 
     file_out << endl;
 
-    file_out << "Alpha : "      << m_alpha  << endl;
-    file_out << "Beta : "       << m_beta   << endl;
-    file_out << "c_1 : "        << m_c1     << endl;
-    file_out << "h bold : "     << m_hBold  << endl;
-    file_out << "V_1 : "        << m_V1     << endl;
-    file_out << "var(Y_0) : "   << m_varY0  << endl;
-    file_out << "theta: "       << m_theta  << endl;
+    file_out << "# Alpha : "      << m_alpha  << endl;
+    file_out << "# Beta : "       << m_beta   << endl;
+    file_out << "# c_1 : "        << m_c1     << endl;
+    file_out << "# h bold : "     << m_hBold  << endl;
+    file_out << "# V_1 : "        << m_V1     << endl;
+    file_out << "# var(Y_0) : "   << m_varY0  << endl;
+    file_out << "# theta: "       << m_theta  << endl;
 
     file_out << endl;
-    file_out << "-------------------------------" << endl << endl;
+    file_out << "# -------------------------------" << endl << endl;
 
     file_out.close();
 }

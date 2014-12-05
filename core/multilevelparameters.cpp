@@ -344,20 +344,20 @@ void MultilevelParameters::writeParameters(const string fileName)
         exit(1);
     }
 
-    file_out << "Epsilon : "        << m_epsilon << endl << endl;
+    file_out << "# Epsilon : "        << m_epsilon << endl << endl;
 
-    file_out << "MULTILEVEL PARAMETERS :" << endl << endl;
+    file_out << "# MULTILEVEL PARAMETERS :" << endl << endl;
 
-    file_out << "Order R : "        << m_R << endl;
-    file_out << "Root M : "         << m_M  << endl;
-    file_out << "Biais inverse h^-1 : " << m_hInverse << endl;
-    file_out << "Stratification strategy q : (";
+    file_out << "# Order R : "        << m_R << endl;
+    file_out << "# Root M : "         << m_M  << endl;
+    file_out << "# Biais inverse h^-1 : " << m_hInverse << endl;
+    file_out << "# Stratification strategy q : (";
     for (unsigned int i=0; i<m_q.size()-1; ++i)
         file_out << m_q[i] << ", ";
     file_out << m_q[m_q.size()-1] << ")" << endl;
 
-    file_out << "Number of simulations N : " << m_N << endl;
-    file_out << "Estimator cost : " << m_cost << endl;
+    file_out << "# Number of simulations N : " << m_N << endl;
+    file_out << "# Estimator cost : " << m_cost << endl;
     file_out << endl;
 
     file_out.close();
